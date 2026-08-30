@@ -24,6 +24,9 @@ The full training, evaluation, smoke-test, GCP Batch, split-job, recovery, and
 output contracts are documented in
 `experiments/fhp/exp1_leduc_config_transfer/README.md`.
 
+For one-time Google Cloud setup and the complete step-by-step Batch workflow,
+see `docs/GCP_BATCH_EXPERIMENTS.md`.
+
 ## Canonical FHP contract
 
 `fhp_vr_deep/game.py` contains the exact OpenSpiel `universal_poker`

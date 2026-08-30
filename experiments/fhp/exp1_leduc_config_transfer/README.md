@@ -83,7 +83,7 @@ export PROJECT_ID="your-project-id"
 export REGION="europe-west1"
 export BUCKET="gs://your-vr-deep-results-bucket"
 export SA_EMAIL="batch-runner@your-project-id.iam.gserviceaccount.com"
-export REPO_URL="https://github.com/lawrencewlcknight/fhp-poker-vr-deep-experiments.git"
+export REPO_URL="https://github.com/lawrencewlcknight/fhp-vr-deep-experiments.git"
 ```
 
 The six-worker sequential run contains 72 effective training hours. Policy
