@@ -1,0 +1,52 @@
+from pathlib import Path
+
+import pytest
+
+from experiments.fhp.exp1_leduc_config_transfer.config import (
+    ALGORITHMS,
+    APPROVAL_STATUS,
+    DEFAULT_SEEDS,
+    LEDUC_SOURCE_CONFIG,
+    PROPOSED_CONFIG,
+    PROPOSED_PROTOCOL,
+    UPSTREAM,
+    validate_proposal,
+)
+from experiments.fhp.exp1_leduc_config_transfer.run import main
+
+
+def test_only_training_config_change_is_the_game():
+    validate_proposal()
+    changed = {
+        key
+        for key in LEDUC_SOURCE_CONFIG
+        if LEDUC_SOURCE_CONFIG[key] != PROPOSED_CONFIG[key]
+    }
+    assert changed == {"game_name"}
+    assert PROPOSED_CONFIG["game_name"] == "FHP"
+
+
+def test_both_vr_deep_variants_and_paired_seeds_are_present():
+    assert DEFAULT_SEEDS == [0, 1, 2]
+    assert set(ALGORITHMS) == {"vr_deep_dcfr_plus", "vr_deep_pdcfr_plus"}
+    assert ALGORITHMS["vr_deep_dcfr_plus"]["alpha"] == 2.0
+    assert ALGORITHMS["vr_deep_pdcfr_plus"]["alpha"] == 2.3
+    assert ALGORITHMS["vr_deep_pdcfr_plus"]["reinitialize_imm_regret_networks"] is True
+
+
+def test_proposed_protocol_is_time_bound_and_seat_swapped():
+    assert PROPOSED_PROTOCOL["training_time_checkpoint_hours"] == [6, 12]
+    assert PROPOSED_PROTOCOL["stop_after_final_training_time_checkpoint"] is True
+    assert PROPOSED_PROTOCOL["sampled_seat_swapped_head_to_head"] is True
+
+
+def test_upstream_commit_is_pinned_in_notice():
+    notice = Path(__file__).parents[1] / "vr_deep_cfr" / "UPSTREAM.md"
+    assert UPSTREAM["commit"] in notice.read_text(encoding="utf-8")
+
+
+def test_pending_entry_point_validates_but_refuses_training():
+    assert APPROVAL_STATUS == "pending"
+    assert main(["--validate-config"]) == 0
+    with pytest.raises(RuntimeError, match="production execution is disabled"):
+        main([])

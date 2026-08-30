@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fhp-poker-vr-deep-experiments"
+version = "0.1.0"
+description = "VR-Deep experiments on canonical flop hold'em poker"
+requires-python = ">=3.11,<3.12"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = [
+  "experiments",
+  "experiments.*",
+  "fhp_vr_deep",
+  "fhp_vr_deep.*",
+  "vr_deep_cfr",
+  "vr_deep_cfr.*",
+]
+exclude = ["outputs*", "gcp*", "tests*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100

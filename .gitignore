@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+build/
+dist/
+
+# Environments
+.venv/
+venv/
+
+# Working results and large model artifacts
+outputs/*
+!outputs/.gitkeep
+cloud_outputs/
+*.pt
+*.pth
+*.pkl
+*.npz
+*.log
+checkpoints/
+snapshots/
+
+# OS and editor noise
+.DS_Store
+.ipynb_checkpoints/
