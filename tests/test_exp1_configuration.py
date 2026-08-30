@@ -1,18 +1,19 @@
 from pathlib import Path
 
-import pytest
-
 from experiments.fhp.exp1_leduc_config_transfer.config import (
     ALGORITHMS,
     APPROVAL_STATUS,
+    APPROVED_CONFIG,
+    BATCH_TIMEOUT_SECONDS,
+    CHECKPOINT_TRAINING_SECONDS,
     DEFAULT_SEEDS,
     LEDUC_SOURCE_CONFIG,
     PROPOSED_CONFIG,
     PROPOSED_PROTOCOL,
     UPSTREAM,
+    validate_config,
     validate_proposal,
 )
-from experiments.fhp.exp1_leduc_config_transfer.run import main
 
 
 def test_only_training_config_change_is_the_game():
@@ -45,8 +46,8 @@ def test_upstream_commit_is_pinned_in_notice():
     assert UPSTREAM["commit"] in notice.read_text(encoding="utf-8")
 
 
-def test_pending_entry_point_validates_but_refuses_training():
-    assert APPROVAL_STATUS == "pending"
-    assert main(["--validate-config"]) == 0
-    with pytest.raises(RuntimeError, match="production execution is disabled"):
-        main([])
+def test_approved_production_configuration_is_runnable_and_exact():
+    assert APPROVAL_STATUS == "approved"
+    assert CHECKPOINT_TRAINING_SECONDS == (6 * 60 * 60, 12 * 60 * 60)
+    assert BATCH_TIMEOUT_SECONDS == 120 * 60 * 60
+    validate_config(APPROVED_CONFIG, production=True)

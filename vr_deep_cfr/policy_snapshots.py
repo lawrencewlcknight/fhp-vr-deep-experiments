@@ -9,11 +9,13 @@ import numpy as np
 import torch
 from open_spiel.python import policy
 
+from fhp_vr_deep.game import FHP_GAME_PARAMETERS, serialisable_game_definition
+
 from .solver import MLP
 
 
 SNAPSHOT_TYPE = "vr_deep_cfr_policy_snapshot"
-SNAPSHOT_VERSION = 1
+SNAPSHOT_VERSION = 2
 
 
 def snapshot_filename(algorithm_id: str, seed: int) -> str:
@@ -28,6 +30,7 @@ def save_policy_snapshot(
     algorithm_label: str,
     seed: int,
     config: Dict[str, Any],
+    checkpoint_row: Dict[str, Any] | None = None,
 ) -> Path:
     """Save only the fitted final average-policy and provenance metadata."""
     path = Path(path)
@@ -42,10 +45,12 @@ def save_policy_snapshot(
             "type": SNAPSHOT_TYPE,
             "algorithm_id": str(algorithm_id),
             "algorithm_label": str(algorithm_label),
-            "game": str(config.get("game_name", "FHP")),
+            "game": serialisable_game_definition(),
             "seed": int(seed),
             "nodes_touched": int(solver.nodes_touched),
             "iteration": int(solver.num_iteration),
+            "episode": int(solver.episode),
+            "checkpoint": dict(checkpoint_row or {}),
             "policy_state_dict": state_dict,
             "policy_network_layers": list(solver.network_layers),
             "input_size": int(solver.infostate_size),
@@ -57,15 +62,26 @@ def save_policy_snapshot(
     return path
 
 
+def load_policy_snapshot_payload(path: str | Path) -> dict:
+    """Load and validate snapshot identity and the exact FHP game contract."""
+    snapshot = torch.load(Path(path), map_location="cpu", weights_only=False)
+    if snapshot.get("type") != SNAPSHOT_TYPE:
+        raise ValueError(f"Not a VR-Deep policy snapshot: {path}")
+    if int(snapshot.get("version", -1)) != SNAPSHOT_VERSION:
+        raise ValueError(f"Unsupported VR-Deep snapshot version: {snapshot.get('version')!r}")
+    parameters = snapshot.get("game", {}).get("parameters")
+    if parameters != dict(FHP_GAME_PARAMETERS):
+        raise ValueError("Snapshot does not use the canonical FHP game definition")
+    return snapshot
+
+
 class LoadedVRPolicy(policy.Policy):
     """OpenSpiel policy backed by a saved VR-Deep average-policy network."""
 
     def __init__(self, game, snapshot_path: str | Path):
         super().__init__(game, list(range(game.num_players())))
         self.path = Path(snapshot_path)
-        snapshot = torch.load(self.path, map_location="cpu", weights_only=False)
-        if snapshot.get("type") != SNAPSHOT_TYPE:
-            raise ValueError(f"Not a VR-Deep policy snapshot: {self.path}")
+        snapshot = load_policy_snapshot_payload(self.path)
         self.metadata = {
             key: value for key, value in snapshot.items() if key != "policy_state_dict"
         }
@@ -106,6 +122,7 @@ class LoadedVRPolicy(policy.Policy):
 __all__ = [
     "LoadedVRPolicy",
     "SNAPSHOT_TYPE",
+    "load_policy_snapshot_payload",
     "save_policy_snapshot",
     "snapshot_filename",
 ]

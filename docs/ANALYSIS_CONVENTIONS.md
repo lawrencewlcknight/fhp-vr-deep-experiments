@@ -34,6 +34,9 @@ by reproducible sampled, seat-swapped head-to-head evaluation. Record:
 - standard error and a 95% confidence interval;
 - paired differences between the two algorithms at matched checkpoints.
 
-Nodes touched exclude evaluation trajectories. Training time excludes snapshot
-serialization and evaluation; wall-clock time includes them. Both axes must be
+Nodes touched exclude evaluation trajectories. Effective training time excludes
+policy fitting, snapshot serialization, and evaluation. Checkpoint wall-clock
+time includes policy fitting up to that checkpoint but is sampled immediately
+before snapshot serialization; `total_worker_wall_clock_seconds` includes the
+complete worker and artifact-validation path. These distinct clocks must be
 retained so algorithmic progress and systems cost are not conflated.

@@ -12,13 +12,17 @@ The repository supports both released VR-Deep variants:
 
 ## Current status
 
-Experiment 1 is scaffolded as a direct transfer of the Leduc VR-Deep training
-configuration to FHP. Its proposed configuration is intentionally guarded and
-cannot start production training until it is approved. Validate it with:
+Experiment 1 implements the approved direct transfer of the Leduc VR-Deep
+training configuration to FHP for both variants and paired seeds. Run the full
+experiment with:
 
 ```bash
-python -m experiments.fhp.exp1_leduc_config_transfer.run --validate-config
+python -m experiments.fhp.exp1_leduc_config_transfer.run
 ```
+
+The full training, evaluation, smoke-test, GCP Batch, split-job, recovery, and
+output contracts are documented in
+`experiments/fhp/exp1_leduc_config_transfer/README.md`.
 
 ## Canonical FHP contract
 
