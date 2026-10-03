@@ -1,5 +1,10 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For **Experiment 2 (UCV Exp.2 encoder, otherwise unchanged VR-Deep baseline)**,
+use the [dedicated experiment guide](../experiments/fhp/exp2_vr_deep_lossless_24h/README.md)
+and `bash gcp/run_exp2_vr_deep_lossless_24h.sh run`. It uses the same service
+account, resources and cloud-smoke/three-worker/aggregation structure below.
+
 For the **new Experiment 1 (VR-DeepPDCFR+, three seeds, 24 active hours)**, use
 [`run_exp1_vr_deep_pdcfr_24h.sh` and its experiment guide](../experiments/fhp/exp1_vr_deep_pdcfr_24h/README.md).
 That guide includes the additional controller IAM permissions and the

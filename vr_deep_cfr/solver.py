@@ -65,7 +65,7 @@ class DeepCumuAdv:
         self.logger = logger or Logger(writer_strings=[])
         self.game = self.load_game()
         self.num_players = self.game.num_players()
-        self.infostate_size = self.game.information_state_tensor_size()
+        self.infostate_size = self.information_state_size()
         self.action_size = self.game.num_distinct_actions()
         self.advantage_buffer_size = advantage_buffer_size
         self.ave_policy_buffer_size = ave_policy_buffer_size
@@ -118,6 +118,10 @@ class DeepCumuAdv:
 
         if self.use_baseline:
             self.init_q_value_trainer()
+
+    def information_state_size(self):
+        """Input-size hook; the original experiment keeps the raw encoding."""
+        return self.game.information_state_tensor_size()
 
     def init_ave_policy_trainer(self):
         self.ave_policy_trainer = AvePolicyTrainer(
@@ -532,10 +536,10 @@ class DeepCumuAdv:
             terminal = ns.is_terminal()
             next_history = self.get_history_tensor(ns)
             next_player = ns.current_player()
-            # The history encoding is the concatenation of the two players'
-            # information tensors; do not expose the other half to the policy.
+            # Raw history permits a player-only slice; encoded variants must
+            # construct that player's information without privileged cards.
             next_infostate = (
-                None if terminal else next_history.reshape(2, self.infostate_size)[next_player]
+                None if terminal else self.next_information_state(ns, next_history, next_player)
             )
             self.q_value_trainer.add_data(
                 history,
@@ -548,6 +552,10 @@ class DeepCumuAdv:
                 ns.returns()[0] / self.max_utility,
             )
         return value
+
+    def next_information_state(self, state, next_history, next_player):
+        """Raw-history shortcut. Encoded variants must override this explicitly."""
+        return next_history.reshape(2, self.infostate_size)[next_player]
 
     def get_infostate_tensor(self, s):
         return s.information_state_tensor()

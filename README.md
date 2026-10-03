@@ -9,6 +9,12 @@ through an algorithm-specific copy. The adapter is
 `fhp-evaluate benchmark SNAPSHOT --deals 10000 --seed 2026` or
 `fhp-evaluate lbr SNAPSHOT --deals 1000 --seed 2026`.
 
+Those generic CLI commands apply to raw-input snapshots. For Experiment 2's
+encoded snapshots, use `fhp_vr_deep.evaluation_adapter.evaluate_checkpoint` or
+its `load_policy_for_evaluation` function with the shared evaluators. The native
+versioned loader correctly handles both representations; the generic suite
+loader currently assumes raw OpenSpiel inputs.
+
 The benchmark uses both-seat duplicate deals and corrected LooseAggressive
 bands `(-300,-100)`. LBR is reported as a lower bound, not exact exploitability.
 
@@ -29,6 +35,11 @@ The repository supports both released VR-Deep variants:
 policies at 6, 12, 18 and 24 hours, without large full training-state archives.
 A cloud smoke/equivalence gate precedes training and strict aggregation follows.
 See [the experiment specification and launch instructions](experiments/fhp/exp1_vr_deep_pdcfr_24h/README.md).
+
+**Experiment 2: lossless input representation** repeats that configuration and
+budget with the exact UCV-ESCHER Experiment 2 encoder. It retains the same flat
+64–64–64 networks and VR-Deep learning rules. See
+[the encoder-transfer specification](experiments/fhp/exp2_vr_deep_lossless_24h/README.md).
 
 The original two-algorithm Leduc-to-FHP transfer experiment is retained under
 the `archieved_` prefix; it is not the active Experiment 1.

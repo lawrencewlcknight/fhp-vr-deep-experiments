@@ -1,0 +1,3045 @@
+{
+  "source_commit": "e60bd6c82c2a139d87b9606a7cdaddb1a5f32795",
+  "source_file_sha256": "9c799a9b24465dce30de5a9d50084893b086d85445f7670425ba2147266cb132",
+  "encoder_metadata": {
+    "id": "fhp_lossless_suit_canonical_v1",
+    "version": 1,
+    "lossless_modulo_suit_symmetry": true,
+    "policy_layout": {
+      "name": "player_information_state",
+      "total_size": 183,
+      "card_size": 104
+    },
+    "full_state_layout": {
+      "name": "critic_full_state",
+      "total_size": 263,
+      "card_size": 156
+    },
+    "card_order": "channel_suit_rank",
+    "betting_encoding": "two_rounds_five_slots_fold_call_raise_one_hot"
+  },
+  "cases": [
+    {
+      "history": [
+        1,
+        40,
+        0,
+        23
+      ],
+      "player": 0,
+      "policy_sha256": "e27ebf6be4161c8681958aee718e7c35b1150841ab5e29b017227a5c1885c314",
+      "critic_sha256": "b5194d9cd0488af78c9aed3d620155c44de5d19298d508e60539475bebd7ed41"
+    },
+    {
+      "history": [
+        1,
+        40,
+        0,
+        23
+      ],
+      "player": 1,
+      "policy_sha256": "ceef2b0ad5cb763408d803557d511907ee3823c19626c58db844610c6e06a163",
+      "critic_sha256": "b5194d9cd0488af78c9aed3d620155c44de5d19298d508e60539475bebd7ed41"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6
+      ],
+      "player": 0,
+      "policy_sha256": "78d1ee7cd01c78122cf5656c8a10d3e369dac10b4b05683927e3b21dd9292fb8",
+      "critic_sha256": "c001e25054d7d7cdd3a2769d885f572fe0bcf6570113c0ea6f61e8a9f5c0160e"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6
+      ],
+      "player": 1,
+      "policy_sha256": "8adb74bc2948b9eefd5b8830c772d7e928a073eac66be24aeca14ae6a4b97586",
+      "critic_sha256": "c001e25054d7d7cdd3a2769d885f572fe0bcf6570113c0ea6f61e8a9f5c0160e"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "06c7a131472b8c7544b393fc37723a7495c7b387d39609f949fa290c35838f43",
+      "critic_sha256": "b10d1245d43f2d97fe1d33b48d62439680167693c37658fc9726e0271d1d5520"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "81941f07e4a60c4b93e8d32de0ea915b638fcb28868288180ffd6b425336221e",
+      "critic_sha256": "b10d1245d43f2d97fe1d33b48d62439680167693c37658fc9726e0271d1d5520"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6,
+        2,
+        1,
+        37,
+        21,
+        3
+      ],
+      "player": 0,
+      "policy_sha256": "a831039bf533639d512a1737a85ae1a41dffed9e70ee4ba9779d16d34abffdd4",
+      "critic_sha256": "04acfcaf1df7467388cf27a07258f7f6deec262314e24c632e72bc9240b04965"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6,
+        2,
+        1,
+        37,
+        21,
+        3
+      ],
+      "player": 1,
+      "policy_sha256": "30ddf81bd135d69e716018d49343c557e65b80edcd5e9e1a3553e21427267cad",
+      "critic_sha256": "04acfcaf1df7467388cf27a07258f7f6deec262314e24c632e72bc9240b04965"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6,
+        2,
+        1,
+        37,
+        21,
+        3,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "95727001a3b627dcf9f2c90336487c48a090ccef23a336286b5aa5edb1ab2a6b",
+      "critic_sha256": "2770558783f6d2a7e55c39a5b90b65df8459cffbdb6fe88e53e8d026859768ef"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6,
+        2,
+        1,
+        37,
+        21,
+        3,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "95087552e01ef62b75e9be3d34cf986836f940f3e86d6b35218a8bc92ee76fcb",
+      "critic_sha256": "2770558783f6d2a7e55c39a5b90b65df8459cffbdb6fe88e53e8d026859768ef"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6,
+        2,
+        1,
+        37,
+        21,
+        3,
+        1,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "94f623971cdfe0f813afa9bba55b3b173454ba31f5c3fbc24134da822137c888",
+      "critic_sha256": "dc48953329b79a963aa3dffaac8131b42efc17ead9e0f7722f5c4a541f673436"
+    },
+    {
+      "history": [
+        31,
+        18,
+        35,
+        6,
+        2,
+        1,
+        37,
+        21,
+        3,
+        1,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "5dbb395627e284975f55c328b98bf7b895cfbdbe88a05a20c63f74092f07c9ee",
+      "critic_sha256": "dc48953329b79a963aa3dffaac8131b42efc17ead9e0f7722f5c4a541f673436"
+    },
+    {
+      "history": [
+        50,
+        7,
+        41,
+        51
+      ],
+      "player": 0,
+      "policy_sha256": "bc78d0ec638e5dcb86be9cf669b3c17d42457c63a91b151e3b1b019d85b03352",
+      "critic_sha256": "d93232358ec4db44c2366123d77120dec26c18a1c1590809178d22c8dff7137a"
+    },
+    {
+      "history": [
+        50,
+        7,
+        41,
+        51
+      ],
+      "player": 1,
+      "policy_sha256": "c592936bc83d5abce8f307fc43bca2b13a6d35b1fc0da542a1cd8205a3bf2ffc",
+      "critic_sha256": "d93232358ec4db44c2366123d77120dec26c18a1c1590809178d22c8dff7137a"
+    },
+    {
+      "history": [
+        39,
+        32,
+        3,
+        46
+      ],
+      "player": 0,
+      "policy_sha256": "f2c61b331423b2b46e88fca2bc035f913469a6ecfbe7102bfcd6bc5e8957607e",
+      "critic_sha256": "a8bad28531e9a6ceeb7ea6f5b9c8b4aabf4cb23e8026bd3cab7abb2cdf7c8d34"
+    },
+    {
+      "history": [
+        39,
+        32,
+        3,
+        46
+      ],
+      "player": 1,
+      "policy_sha256": "f282f81159620db34e44061ea9ee080dfd04035cc74e4fc1744ff4aa6e89380a",
+      "critic_sha256": "a8bad28531e9a6ceeb7ea6f5b9c8b4aabf4cb23e8026bd3cab7abb2cdf7c8d34"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15
+      ],
+      "player": 0,
+      "policy_sha256": "c518ac4b049697880b4e1b35b0528aac7367cf436098a04a63e990bca242bf19",
+      "critic_sha256": "347a0b2cf8884faf620fc663d8973daa3d10cff03727eecf9227e3a61f489a41"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15
+      ],
+      "player": 1,
+      "policy_sha256": "1fea6e73cf84f34e989493894720bbdf5aebb180c2cae04ebd9c552e2b06bb13",
+      "critic_sha256": "347a0b2cf8884faf620fc663d8973daa3d10cff03727eecf9227e3a61f489a41"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "4064e1ac21d8236f753414563089a1693421ef5f04bc316a6dc09fd04338ab1b",
+      "critic_sha256": "0a25ccf43182af2a23b792b62fe2ac42b5021cd3449c28c57867f25cefefc94d"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "ce541960abc6ec5f39336a08b74816029671c29e48d2f9e3e282098867617d5f",
+      "critic_sha256": "0a25ccf43182af2a23b792b62fe2ac42b5021cd3449c28c57867f25cefefc94d"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "bf5897f631c710d20430483f88aa9ec524917596b361cbe9f79ebf9ccb81eb9a",
+      "critic_sha256": "78132c0803c2af90ee4e8191e26d5310bd9e3981d1eeb6f6d0113315657bc220"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "4aa28c0d4e275efd799c7524692acd3d322ab530944bae80ae1a3e0b926632e5",
+      "critic_sha256": "78132c0803c2af90ee4e8191e26d5310bd9e3981d1eeb6f6d0113315657bc220"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "17ec50461d718c863778ee6cc2494138061ff0775ef85975ad32d4c47c45cb17",
+      "critic_sha256": "14c36618f4933c3bac5fc5d1b81bb68b77d4da48ff0e5cada051def1d16bb851"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "251333fc4b03a631ca816ba8399d82e41f2d190ea08e4c65249dc7471e4cc7b0",
+      "critic_sha256": "14c36618f4933c3bac5fc5d1b81bb68b77d4da48ff0e5cada051def1d16bb851"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2,
+        2,
+        1,
+        2,
+        19,
+        13
+      ],
+      "player": 0,
+      "policy_sha256": "f7aed72cdd01012814ad69977ad30643c5397be32d72b8e9a91772b407c7c415",
+      "critic_sha256": "29a7886710ed49f231cd2a5c9bf4a654afdffb2bc5279ee831b6afd9947bcf69"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2,
+        2,
+        1,
+        2,
+        19,
+        13
+      ],
+      "player": 1,
+      "policy_sha256": "7d490a57171d9fcdf2e46aa6a517fbd4933457c3a94dfe1113d172168764886f",
+      "critic_sha256": "29a7886710ed49f231cd2a5c9bf4a654afdffb2bc5279ee831b6afd9947bcf69"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2,
+        2,
+        1,
+        2,
+        19,
+        13,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "ea663b526570c56c8aff3d34580b20a2a2033b1a4b1a76163b8f13a60cfa1802",
+      "critic_sha256": "b94345232848ec6b3b7bcedd560b8437722f4c3963cd46f9661891c6daa72131"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2,
+        2,
+        1,
+        2,
+        19,
+        13,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "09fe7de0efdbbb222f1e8cde46ba2709319ad8af8299181e8be25a66e085a83d",
+      "critic_sha256": "b94345232848ec6b3b7bcedd560b8437722f4c3963cd46f9661891c6daa72131"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2,
+        2,
+        1,
+        2,
+        19,
+        13,
+        1,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "1e0a9629f9e5f21e18fd45fe9cbf15b2b32bbfc458ac96b41df366502806c606",
+      "critic_sha256": "62305a94e128bb598db813909eacc79e7d62edb1f55a6a2176bf220882dd7a90"
+    },
+    {
+      "history": [
+        35,
+        31,
+        9,
+        15,
+        1,
+        2,
+        2,
+        1,
+        2,
+        19,
+        13,
+        1,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "85f895bfd171d5e2a97177ed79b87753b17686f598df65bc668812cf4db06416",
+      "critic_sha256": "62305a94e128bb598db813909eacc79e7d62edb1f55a6a2176bf220882dd7a90"
+    },
+    {
+      "history": [
+        23,
+        2,
+        13,
+        6
+      ],
+      "player": 0,
+      "policy_sha256": "ef3d02fadf5b4a5fa506533bb416ab0a94b28424f0f3b000b0e4aa007232b8cf",
+      "critic_sha256": "8f7d724215318e2bebd6580cd98abeb08cb46daacf3f03be4a709dfe1f57cf3a"
+    },
+    {
+      "history": [
+        23,
+        2,
+        13,
+        6
+      ],
+      "player": 1,
+      "policy_sha256": "20fff06df753f3006675722b9f0eda185b606a9ea35becc691ce3ae59d94aa9c",
+      "critic_sha256": "8f7d724215318e2bebd6580cd98abeb08cb46daacf3f03be4a709dfe1f57cf3a"
+    },
+    {
+      "history": [
+        23,
+        2,
+        13,
+        6,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "d4a9832e1a811b674c2ae2ef30ceb2331b57d8caad26687a5c27d869c4b53a31",
+      "critic_sha256": "f331981586c9c0ddc3c0e57d598a5b131d27f73535c699a50bdb583a8e4fa828"
+    },
+    {
+      "history": [
+        23,
+        2,
+        13,
+        6,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "cce4f2ff77196640d8b43d5734dfd4363edae1b8ba8af2bf1076f88210164e4c",
+      "critic_sha256": "f331981586c9c0ddc3c0e57d598a5b131d27f73535c699a50bdb583a8e4fa828"
+    },
+    {
+      "history": [
+        23,
+        2,
+        13,
+        6,
+        2,
+        1,
+        41,
+        49,
+        21
+      ],
+      "player": 0,
+      "policy_sha256": "ce9069510b01c116662c6247bb39dacd28449a9c3514dff63a51d3f15b63e249",
+      "critic_sha256": "9a7f1b454fdc4f2bb0bb7dbe7d7ca5a7ddc70dbc935e46aa7037d1e49097de59"
+    },
+    {
+      "history": [
+        23,
+        2,
+        13,
+        6,
+        2,
+        1,
+        41,
+        49,
+        21
+      ],
+      "player": 1,
+      "policy_sha256": "30593446a002d955e02c7481c80b9ce53a162111cc4fd6c4f28fa25894e134c1",
+      "critic_sha256": "9a7f1b454fdc4f2bb0bb7dbe7d7ca5a7ddc70dbc935e46aa7037d1e49097de59"
+    },
+    {
+      "history": [
+        23,
+        2,
+        13,
+        6,
+        2,
+        1,
+        41,
+        49,
+        21,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "3fd4397d726edcb771968ae0fa1d98fdf64117ca5a4b41559c673d0a901fb9ba",
+      "critic_sha256": "5830cfedc1ac65dd7d6e01c6121683a15b1bbc89d4454401578ad6e7ffba0624"
+    },
+    {
+      "history": [
+        23,
+        2,
+        13,
+        6,
+        2,
+        1,
+        41,
+        49,
+        21,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "126551833b88a05cb8eacda7427fba69e1a3514d7d397426a7df7b7d64cad991",
+      "critic_sha256": "5830cfedc1ac65dd7d6e01c6121683a15b1bbc89d4454401578ad6e7ffba0624"
+    },
+    {
+      "history": [
+        13,
+        49,
+        8,
+        35
+      ],
+      "player": 0,
+      "policy_sha256": "43547a248fbf9e39c01f77c20818196fb579f0195149db4a77d892ab2b3172ed",
+      "critic_sha256": "730e7e4a9a49f5d77bd25a901275fa96f222b1c4bd06c31ae4dc5c3c3667edb1"
+    },
+    {
+      "history": [
+        13,
+        49,
+        8,
+        35
+      ],
+      "player": 1,
+      "policy_sha256": "7eabf114e1f56f2656e5cb2e19faa48b2c6ff90eaad66b531647e998d99f9531",
+      "critic_sha256": "730e7e4a9a49f5d77bd25a901275fa96f222b1c4bd06c31ae4dc5c3c3667edb1"
+    },
+    {
+      "history": [
+        13,
+        49,
+        8,
+        35,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "c16c6bb7cefc1d9efa299b87a8857600c72904bdb61af23e4019e7bfaf79db89",
+      "critic_sha256": "b78791e5d348a9af1c1334bdf2e29a8ca3c5eaadc6a0d0862d4341d575fbac5b"
+    },
+    {
+      "history": [
+        13,
+        49,
+        8,
+        35,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "dadc34f8c96e6f6d832b477d129befc4299b00868d707aa6e40b227ebab964da",
+      "critic_sha256": "b78791e5d348a9af1c1334bdf2e29a8ca3c5eaadc6a0d0862d4341d575fbac5b"
+    },
+    {
+      "history": [
+        13,
+        49,
+        8,
+        35,
+        1,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "376c094e77210fbbda8bbe2e53f1f393bcca3e7b2d2a3318d57a58f0eb8e23f6",
+      "critic_sha256": "cb03d6f5e826070e597aa489f7d18266b1736109701bf67751c3ff8e9f3e3e48"
+    },
+    {
+      "history": [
+        13,
+        49,
+        8,
+        35,
+        1,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "fcbe90c852b23130a36cd86a7a1bb975f513fc9a88300615d9b1aa737bd69d9b",
+      "critic_sha256": "cb03d6f5e826070e597aa489f7d18266b1736109701bf67751c3ff8e9f3e3e48"
+    },
+    {
+      "history": [
+        13,
+        49,
+        8,
+        35,
+        1,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "e77fe959802e76068333bc4e8a616d03aa17e6f028a3d633021cf43705d700bc",
+      "critic_sha256": "7c7f0347e4ca66148e05188ff4ad2bb3fb87c642eee774a34086f475258e9a9c"
+    },
+    {
+      "history": [
+        13,
+        49,
+        8,
+        35,
+        1,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "ceca8c6118ce09feeb1f04b14d8e7160e882bf58124b30f0ad9f4808d19c758d",
+      "critic_sha256": "7c7f0347e4ca66148e05188ff4ad2bb3fb87c642eee774a34086f475258e9a9c"
+    },
+    {
+      "history": [
+        19,
+        34,
+        12,
+        21
+      ],
+      "player": 0,
+      "policy_sha256": "d812ffc962e3342ab1317bb28fc4e82bec39e78571cc8c7ea9b82049d79de45b",
+      "critic_sha256": "a28020f51b9b5220cca0ace53ec4db709f192b2c08deb5737ffec75ec812536a"
+    },
+    {
+      "history": [
+        19,
+        34,
+        12,
+        21
+      ],
+      "player": 1,
+      "policy_sha256": "dd383b7f5e0d4df4417e0f40c77703566a32dfd3a7e1f4ca96d75385cc045790",
+      "critic_sha256": "a28020f51b9b5220cca0ace53ec4db709f192b2c08deb5737ffec75ec812536a"
+    },
+    {
+      "history": [
+        11,
+        7,
+        35,
+        37
+      ],
+      "player": 0,
+      "policy_sha256": "39379b43a11909b8b56e4c81c5b11669cadeda56abf20c9ea3fa00b37748bc86",
+      "critic_sha256": "8128b7b739a78117c49798ac1de3f3e5952359438aa8253cdc2f8047535ba604"
+    },
+    {
+      "history": [
+        11,
+        7,
+        35,
+        37
+      ],
+      "player": 1,
+      "policy_sha256": "9374f3477054ad486d261be8ea58497d600185c0ca920ee33eb5822c8acd5494",
+      "critic_sha256": "8128b7b739a78117c49798ac1de3f3e5952359438aa8253cdc2f8047535ba604"
+    },
+    {
+      "history": [
+        35,
+        5,
+        33,
+        50
+      ],
+      "player": 0,
+      "policy_sha256": "5e530e9e15a28a9fe4d03f66a13b35e181156f4ace0f9db8461a704d47d52f11",
+      "critic_sha256": "0ecf5091411ce6dba9c957595c739285a2fbdaf32c3e64235ac55d22daa4f53a"
+    },
+    {
+      "history": [
+        35,
+        5,
+        33,
+        50
+      ],
+      "player": 1,
+      "policy_sha256": "72a5552aa89ef7c8e1760dd66c13f4b9f05dc696dfccb0539ebc7cadf0296411",
+      "critic_sha256": "0ecf5091411ce6dba9c957595c739285a2fbdaf32c3e64235ac55d22daa4f53a"
+    },
+    {
+      "history": [
+        27,
+        0,
+        20,
+        51
+      ],
+      "player": 0,
+      "policy_sha256": "7e7bbe73a4ad8d54ec41362ac0bd2540e8054069a7fc82963f6fc3f5b1f43919",
+      "critic_sha256": "bad839d3d1c235d7a65d300d7cc4afcba23a4adbe0a8541f9812d85b3bf423a0"
+    },
+    {
+      "history": [
+        27,
+        0,
+        20,
+        51
+      ],
+      "player": 1,
+      "policy_sha256": "8b769117928c60d4e456ee10d90b805b6c9df646513a0d66b88128e4dde39f11",
+      "critic_sha256": "bad839d3d1c235d7a65d300d7cc4afcba23a4adbe0a8541f9812d85b3bf423a0"
+    },
+    {
+      "history": [
+        44,
+        14,
+        16,
+        37
+      ],
+      "player": 0,
+      "policy_sha256": "402225c730d01a5e2f8bc1aa51892c581267e31debeb19d1ea3cfb0b06a04a37",
+      "critic_sha256": "12ce2fbbfc54431310fecbf2251fa514e97294027d0ac1ead511713c406211a1"
+    },
+    {
+      "history": [
+        44,
+        14,
+        16,
+        37
+      ],
+      "player": 1,
+      "policy_sha256": "2f0363afba3a65866566a9204ee466da8d68cf61d9a30ec673c14c4226231275",
+      "critic_sha256": "12ce2fbbfc54431310fecbf2251fa514e97294027d0ac1ead511713c406211a1"
+    },
+    {
+      "history": [
+        44,
+        14,
+        16,
+        37,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "2bbb2d461bf429c2c0c5edbc5980e8d8a489b75dbc9ef807ae776eac7a614467",
+      "critic_sha256": "e026d7c3a8d46bc71077e9adfacfd5ef8875516aa0583c0fd74906f7a4540928"
+    },
+    {
+      "history": [
+        44,
+        14,
+        16,
+        37,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "2d034a75753cd8ffdaec3f8a4df057c7fbf2b8f7647a1c7b28591f036cd3e6f5",
+      "critic_sha256": "e026d7c3a8d46bc71077e9adfacfd5ef8875516aa0583c0fd74906f7a4540928"
+    },
+    {
+      "history": [
+        44,
+        14,
+        16,
+        37,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "dfeb66e070d3a8f6a151a2fc047c01e9923cc20e8b31bbbb964927992836e76e",
+      "critic_sha256": "40512928c5c80a5ec011e613b4b4b734f0232a2ac4e01bf7ea04482a8d45a9cd"
+    },
+    {
+      "history": [
+        44,
+        14,
+        16,
+        37,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "f48c434871ed87367b333b9ee690cbd1dade95d1e8327a867d8cb22026e8bed9",
+      "critic_sha256": "40512928c5c80a5ec011e613b4b4b734f0232a2ac4e01bf7ea04482a8d45a9cd"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "ba02d97d649668fe836fcc6cfddba152bc6ab8689edfdd44fb10eafac71256bc",
+      "critic_sha256": "a13e3f4da61736f775348fbd456a3661585ff830186b31387e40e85156403a7c"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "96bfe4205f089c61bac312ecefe23a2289d5db20b05ffb808bdd821c48f472e1",
+      "critic_sha256": "a13e3f4da61736f775348fbd456a3661585ff830186b31387e40e85156403a7c"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "dd09cc4d1ba3ebdd6808a78339fb33a2aa98c710796326d5586a96186d05a316",
+      "critic_sha256": "a02f004eaae6593b12eb01d1f439a40172d68f826c32256944bfbebbb38227a5"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "e6ac9d9788bb7d05d30845a393ae78ea3ab1521571ee6fd7236010241185c782",
+      "critic_sha256": "a02f004eaae6593b12eb01d1f439a40172d68f826c32256944bfbebbb38227a5"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2,
+        1,
+        33,
+        35,
+        37
+      ],
+      "player": 0,
+      "policy_sha256": "5cf9497556ed44898a2f3d66105e7172f90dbf16cede5bc733407e4b0bce4d58",
+      "critic_sha256": "7e549e3eaf0a984cac539eac006f318d773e33c1897429f4790f9e38ea13974a"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2,
+        1,
+        33,
+        35,
+        37
+      ],
+      "player": 1,
+      "policy_sha256": "a8d561864cbc41def7dbd5ce7529dbde63d415d0b1343c5b3a43d53f2b87f836",
+      "critic_sha256": "7e549e3eaf0a984cac539eac006f318d773e33c1897429f4790f9e38ea13974a"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2,
+        1,
+        33,
+        35,
+        37,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "6181fedf5a595329077d3cb8265fe4cf55e61bd3ca509826f05819c8debb0ec0",
+      "critic_sha256": "0693f0164153a247087190525556943844ff1fd12a34f70a03af7277d714190f"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2,
+        1,
+        33,
+        35,
+        37,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "8367261699f154dce1fa2f8ed6d99c085f1d4af51d98e4fe03b369d2407cd60a",
+      "critic_sha256": "0693f0164153a247087190525556943844ff1fd12a34f70a03af7277d714190f"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2,
+        1,
+        33,
+        35,
+        37,
+        1,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "38fd33833c48709bd390e99c2cbddf8c508fcfd0f612f97c90ed3f013a535c56",
+      "critic_sha256": "714300f7d40166191df2daaceb6f9d6237312db4f7dbc94d14a2d171ac962ed7"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2,
+        1,
+        33,
+        35,
+        37,
+        1,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "b0ec88b575fb13530f190ae752502ca38afec114db26b6da2709b7fa89cd8dc9",
+      "critic_sha256": "714300f7d40166191df2daaceb6f9d6237312db4f7dbc94d14a2d171ac962ed7"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2,
+        1,
+        33,
+        35,
+        37,
+        1,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "af41331970a8a88d17f1bf1dde3e0dd700340a4cc443feed9b1e0c75f4e69ccb",
+      "critic_sha256": "95c68bade4a079c7d6717c3d56262465d60befc5d32f1082310fa459f154830e"
+    },
+    {
+      "history": [
+        41,
+        31,
+        51,
+        2,
+        2,
+        1,
+        33,
+        35,
+        37,
+        1,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "a886d1921c92a584fde87eee23aa590dd71523a55dddf21b7865ec7de05e1a57",
+      "critic_sha256": "95c68bade4a079c7d6717c3d56262465d60befc5d32f1082310fa459f154830e"
+    },
+    {
+      "history": [
+        16,
+        45,
+        5,
+        11
+      ],
+      "player": 0,
+      "policy_sha256": "1b2e68ccdbb7cf5895ebd00a97103de40f479004d341be0468d3877a389de328",
+      "critic_sha256": "9d4845f1276bb61d695e1c3a7198fe34cfb6d834e27fcd9f667c84d442ecb07b"
+    },
+    {
+      "history": [
+        16,
+        45,
+        5,
+        11
+      ],
+      "player": 1,
+      "policy_sha256": "291f802ebb3077ed211f68b2eaf7cd03f86b4c6779b79ae3839186eed64c87e0",
+      "critic_sha256": "9d4845f1276bb61d695e1c3a7198fe34cfb6d834e27fcd9f667c84d442ecb07b"
+    },
+    {
+      "history": [
+        20,
+        3,
+        42,
+        15
+      ],
+      "player": 0,
+      "policy_sha256": "ef3d02fadf5b4a5fa506533bb416ab0a94b28424f0f3b000b0e4aa007232b8cf",
+      "critic_sha256": "c176f2b5623a3070f4078d6bdb7942b77b4ccbd4725e01374f41264202a1fecd"
+    },
+    {
+      "history": [
+        20,
+        3,
+        42,
+        15
+      ],
+      "player": 1,
+      "policy_sha256": "4ff01158ee3f9e4bbc66e7e8e80a95e985f590c4250a9b7a8b0ad8d6574622cb",
+      "critic_sha256": "c176f2b5623a3070f4078d6bdb7942b77b4ccbd4725e01374f41264202a1fecd"
+    },
+    {
+      "history": [
+        20,
+        3,
+        42,
+        15,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "4912b553721ffdb6a98e808f4b950876dfacf343d044463fc6e47f808f98c017",
+      "critic_sha256": "2a41e0085479cb3988c4eb013c4fe56d9e8ca65f07e2aaaff18c94bef892ff6f"
+    },
+    {
+      "history": [
+        20,
+        3,
+        42,
+        15,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "a67bd493f29587a9715824a20876955fdec42bfde91d8ea423fe6042eeb6c7de",
+      "critic_sha256": "2a41e0085479cb3988c4eb013c4fe56d9e8ca65f07e2aaaff18c94bef892ff6f"
+    },
+    {
+      "history": [
+        20,
+        3,
+        42,
+        15,
+        1,
+        1,
+        29,
+        17,
+        12
+      ],
+      "player": 0,
+      "policy_sha256": "1bb3e649b7ab418718ce142e8724a0e7e441b99282b66fb47d08df532e180ad4",
+      "critic_sha256": "ff784d975f225c0a87508aad53af3fe727a32348606f8af42c03243c9b6b2d42"
+    },
+    {
+      "history": [
+        20,
+        3,
+        42,
+        15,
+        1,
+        1,
+        29,
+        17,
+        12
+      ],
+      "player": 1,
+      "policy_sha256": "362ba6c35f0b667892569cdeda580b9ffc1f1ce8eac5c5c342fe3c3be4b26d34",
+      "critic_sha256": "ff784d975f225c0a87508aad53af3fe727a32348606f8af42c03243c9b6b2d42"
+    },
+    {
+      "history": [
+        20,
+        3,
+        42,
+        15,
+        1,
+        1,
+        29,
+        17,
+        12,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "9c8827977aa6c443bdfad4188e8e54f0a87f0ed9f3c8303af47ad686c402dc79",
+      "critic_sha256": "4d1855405b2016b0c1bdf5edeac133eface7596053a883f77738411b3cb799e3"
+    },
+    {
+      "history": [
+        20,
+        3,
+        42,
+        15,
+        1,
+        1,
+        29,
+        17,
+        12,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "5225c5064d1689356ec180ca5bcc406d78d482ca2e97f07a4c2d91970e87448c",
+      "critic_sha256": "4d1855405b2016b0c1bdf5edeac133eface7596053a883f77738411b3cb799e3"
+    },
+    {
+      "history": [
+        6,
+        17,
+        1,
+        29
+      ],
+      "player": 0,
+      "policy_sha256": "2aefc71348e10da47e467d9c08a2e8ba8994b931b5de3f5b231b2bf2bfd1ed07",
+      "critic_sha256": "b306d30f3647735140db0bd2ff9d2ab2d9c1bd5e3e019274426c589c0140fb17"
+    },
+    {
+      "history": [
+        6,
+        17,
+        1,
+        29
+      ],
+      "player": 1,
+      "policy_sha256": "c7077a26ec836039e4edee83c7090416dbcb56d1c34715e404dd192cc0186bf5",
+      "critic_sha256": "b306d30f3647735140db0bd2ff9d2ab2d9c1bd5e3e019274426c589c0140fb17"
+    },
+    {
+      "history": [
+        6,
+        17,
+        1,
+        29,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "2b3a2f1454f41c0075b847e41c75bc789e5fcb9728bf2a72ab10354a2dc2ad3c",
+      "critic_sha256": "3a49b10d89e30c63597cefc7a9b06246b323d3867f5f610e262525b3c7bfdf78"
+    },
+    {
+      "history": [
+        6,
+        17,
+        1,
+        29,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "64ef394b0a3815ee3a77fa94ffff4037ed41f9e29413356457a57c3d8b5f4ed6",
+      "critic_sha256": "3a49b10d89e30c63597cefc7a9b06246b323d3867f5f610e262525b3c7bfdf78"
+    },
+    {
+      "history": [
+        6,
+        17,
+        1,
+        29,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "037a963b6031f8c44b1a562a01a1373c199412697de731e80f2aebdac0faa242",
+      "critic_sha256": "55f2a78b5627d57006067f0bd19d5fc311b674783b4366335bd4a8b2e09e2597"
+    },
+    {
+      "history": [
+        6,
+        17,
+        1,
+        29,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "3dc594868fe4f45aef2256ff01288a9f52b362a5ad432b824aae94a40e0af117",
+      "critic_sha256": "55f2a78b5627d57006067f0bd19d5fc311b674783b4366335bd4a8b2e09e2597"
+    },
+    {
+      "history": [
+        8,
+        45,
+        12,
+        47
+      ],
+      "player": 0,
+      "policy_sha256": "471b9de4b7931db355430b15e4311a6755f5d34807bdb8c92ff7c3dfbb9ea300",
+      "critic_sha256": "0d77ff42b558e3c16e4c000dab125156c6ce607183bb02a2aaeb5a0da521094f"
+    },
+    {
+      "history": [
+        8,
+        45,
+        12,
+        47
+      ],
+      "player": 1,
+      "policy_sha256": "2f8f60728976324bc5235d01157e18cd467f80d6672c1c36c66fe4878a806afc",
+      "critic_sha256": "0d77ff42b558e3c16e4c000dab125156c6ce607183bb02a2aaeb5a0da521094f"
+    },
+    {
+      "history": [
+        33,
+        50,
+        25,
+        32
+      ],
+      "player": 0,
+      "policy_sha256": "09f91d1cb9d24603577f1e7e8a95feb40183c2342a3579bbc54a4e8df96ea86c",
+      "critic_sha256": "4175775bc81567dffd90d69515abe4f455a267bd18f13d464043a4af39079a6d"
+    },
+    {
+      "history": [
+        33,
+        50,
+        25,
+        32
+      ],
+      "player": 1,
+      "policy_sha256": "4529b9702274b9f7ed06686f3d868d1996bd2abb7343f9bdfa5fdc7f18291b9e",
+      "critic_sha256": "4175775bc81567dffd90d69515abe4f455a267bd18f13d464043a4af39079a6d"
+    },
+    {
+      "history": [
+        3,
+        43,
+        16,
+        44
+      ],
+      "player": 0,
+      "policy_sha256": "4243328028ea5090023e19449eee879ff828ea594f833a5de6a198d30d1fd9bd",
+      "critic_sha256": "7aa9c50e64ab94fc807ae84679eaa005447caa63d2519582b0118b779f3cf02d"
+    },
+    {
+      "history": [
+        3,
+        43,
+        16,
+        44
+      ],
+      "player": 1,
+      "policy_sha256": "73a5d3cecc263d8a026de3e93cb16acc94a79fbd8ee6b33717f7f3f75dcd8a3b",
+      "critic_sha256": "7aa9c50e64ab94fc807ae84679eaa005447caa63d2519582b0118b779f3cf02d"
+    },
+    {
+      "history": [
+        3,
+        43,
+        16,
+        44,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "e68a12a44d8254f15c96467a4c7667bc16ca7235819cd7194faf5b0272094248",
+      "critic_sha256": "4f2d2d149c9e21c531bf4e23bdaa99a0198f6d0c2bce3a1650e384329ad050b3"
+    },
+    {
+      "history": [
+        3,
+        43,
+        16,
+        44,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "d98f27932763d1422dfa648e61f74c04e34ddd4c46a012c2b5f503fa19a8b6f2",
+      "critic_sha256": "4f2d2d149c9e21c531bf4e23bdaa99a0198f6d0c2bce3a1650e384329ad050b3"
+    },
+    {
+      "history": [
+        3,
+        43,
+        16,
+        44,
+        2,
+        1,
+        46,
+        24,
+        17
+      ],
+      "player": 0,
+      "policy_sha256": "0890ee6384a140b532b1c0a339498740fa6a90a192c31a0aaff5d88bea757ada",
+      "critic_sha256": "ad5edf71e494610bc02bf81ef05a7ba3c2f25efa2f50a40cb83e7b53433281ac"
+    },
+    {
+      "history": [
+        3,
+        43,
+        16,
+        44,
+        2,
+        1,
+        46,
+        24,
+        17
+      ],
+      "player": 1,
+      "policy_sha256": "79431bd3f5c14ec0220a398ed40acac19639e3076eb2cb10ae75e810bcc54a8d",
+      "critic_sha256": "ad5edf71e494610bc02bf81ef05a7ba3c2f25efa2f50a40cb83e7b53433281ac"
+    },
+    {
+      "history": [
+        3,
+        43,
+        16,
+        44,
+        2,
+        1,
+        46,
+        24,
+        17,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "9eea598780deac324c361d66737f744139f76abf60183d00efddbe192e71bf22",
+      "critic_sha256": "b3ec76f0b5859ccff8cf49eba92cd5dbfc357fd8812974ad39d1f7300d3a2d50"
+    },
+    {
+      "history": [
+        3,
+        43,
+        16,
+        44,
+        2,
+        1,
+        46,
+        24,
+        17,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "0271d9677eb5a93fad6371b288c95e13b5fb4cc4d6b8af969eea3b8238f14301",
+      "critic_sha256": "b3ec76f0b5859ccff8cf49eba92cd5dbfc357fd8812974ad39d1f7300d3a2d50"
+    },
+    {
+      "history": [
+        20,
+        18,
+        8,
+        23
+      ],
+      "player": 0,
+      "policy_sha256": "95d3b4af2a5c5e4c133a67f999cd12587a201de1006f08dc5f9a2c7021a0a952",
+      "critic_sha256": "998c66082c905282310168a8a8f336a4f80d6ac1c6e9371fe80d805d57257da7"
+    },
+    {
+      "history": [
+        20,
+        18,
+        8,
+        23
+      ],
+      "player": 1,
+      "policy_sha256": "9cbcc6cac1aa6a2e874b107efc0659ef10761bc3f286c9062f407df002e0662a",
+      "critic_sha256": "998c66082c905282310168a8a8f336a4f80d6ac1c6e9371fe80d805d57257da7"
+    },
+    {
+      "history": [
+        5,
+        47,
+        50,
+        32
+      ],
+      "player": 0,
+      "policy_sha256": "dcb12c4af2406af75e388168be7e88635e64ed13ed8e7a12356675ba94f73710",
+      "critic_sha256": "908d2b2a33a327f1a6a9f79d47cee863dcfdf40eca59a04c964cb77888c77dac"
+    },
+    {
+      "history": [
+        5,
+        47,
+        50,
+        32
+      ],
+      "player": 1,
+      "policy_sha256": "72a5552aa89ef7c8e1760dd66c13f4b9f05dc696dfccb0539ebc7cadf0296411",
+      "critic_sha256": "908d2b2a33a327f1a6a9f79d47cee863dcfdf40eca59a04c964cb77888c77dac"
+    },
+    {
+      "history": [
+        21,
+        13,
+        0,
+        40
+      ],
+      "player": 0,
+      "policy_sha256": "e50eed1ec02259d5fed15b7d350d22006b96bc3c0d4e419eb4a8f092c123a39b",
+      "critic_sha256": "84fc8c0460bac0ac147104b84cbbbbd22a5a509ee7d3285ba3e599c1078c61a1"
+    },
+    {
+      "history": [
+        21,
+        13,
+        0,
+        40
+      ],
+      "player": 1,
+      "policy_sha256": "eef8563588b9db5b1095908ace4907441328a8fd08d488c9891c1b2ab77fa29e",
+      "critic_sha256": "84fc8c0460bac0ac147104b84cbbbbd22a5a509ee7d3285ba3e599c1078c61a1"
+    },
+    {
+      "history": [
+        21,
+        13,
+        0,
+        40,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "62b6119b344c92b5825fe65586272dcd155cd2943699f26c9bc2a2764dffd434",
+      "critic_sha256": "03637f4e55a2fb97521b485b87a303d4eb9e3ee0c03ed0b051be07575fcd723b"
+    },
+    {
+      "history": [
+        21,
+        13,
+        0,
+        40,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "089d4a7de20b16fcd69c4f93baab2c9c336008e8d3ac9421f880f313059b2646",
+      "critic_sha256": "03637f4e55a2fb97521b485b87a303d4eb9e3ee0c03ed0b051be07575fcd723b"
+    },
+    {
+      "history": [
+        21,
+        13,
+        0,
+        40,
+        1,
+        1,
+        15,
+        51,
+        33
+      ],
+      "player": 0,
+      "policy_sha256": "61d25b650014f0c79dd520a3e4c8288bf7c13a0f8c23211f7a0bdd8377008dea",
+      "critic_sha256": "f507140b4a3e16a0d2bd49718bcb418f8c20c9143ce5fa6739bdb70742373748"
+    },
+    {
+      "history": [
+        21,
+        13,
+        0,
+        40,
+        1,
+        1,
+        15,
+        51,
+        33
+      ],
+      "player": 1,
+      "policy_sha256": "529656924f57d776241bed27445f68f0a58443374e705bf86351224e0f642d90",
+      "critic_sha256": "f507140b4a3e16a0d2bd49718bcb418f8c20c9143ce5fa6739bdb70742373748"
+    },
+    {
+      "history": [
+        21,
+        13,
+        0,
+        40,
+        1,
+        1,
+        15,
+        51,
+        33,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "6950b72c8ad05dc798f9d4f39372f8d261f7a1b37d1483b2ff178da9ee66447c",
+      "critic_sha256": "0bc2b108c3e29a711f3eb8e145b9653d783d4efca5b85fe3bb5aed7f4370b139"
+    },
+    {
+      "history": [
+        21,
+        13,
+        0,
+        40,
+        1,
+        1,
+        15,
+        51,
+        33,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "e225de0719f2c0ebbb33bb859acb2036e0e708e631cb9024ee510edee091cd2e",
+      "critic_sha256": "0bc2b108c3e29a711f3eb8e145b9653d783d4efca5b85fe3bb5aed7f4370b139"
+    },
+    {
+      "history": [
+        5,
+        42,
+        20,
+        15
+      ],
+      "player": 0,
+      "policy_sha256": "e8073d4f13cb1b0f61a1ec48aab3c0d0adf72cbae0c1dbc4d70fa1f7e81013bc",
+      "critic_sha256": "a98cca96bc99d76b7027b5de1f80f62f30fa3524abc683e6f9e8d8a83e7d93e2"
+    },
+    {
+      "history": [
+        5,
+        42,
+        20,
+        15
+      ],
+      "player": 1,
+      "policy_sha256": "dd383b7f5e0d4df4417e0f40c77703566a32dfd3a7e1f4ca96d75385cc045790",
+      "critic_sha256": "a98cca96bc99d76b7027b5de1f80f62f30fa3524abc683e6f9e8d8a83e7d93e2"
+    },
+    {
+      "history": [
+        5,
+        42,
+        20,
+        15,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "4a6826b866915bb5daddcfc4733ff1df58c0e4b6bca09de50ce4d53c1123184b",
+      "critic_sha256": "6873a6bb0718a24323596a801928e1fdc860df2a718121fc14359d465980d0ec"
+    },
+    {
+      "history": [
+        5,
+        42,
+        20,
+        15,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "8ccb2aa236d8187da43522a5f223f99477707993defb8df03094479c392f87cf",
+      "critic_sha256": "6873a6bb0718a24323596a801928e1fdc860df2a718121fc14359d465980d0ec"
+    },
+    {
+      "history": [
+        5,
+        42,
+        20,
+        15,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "6e99652e888763ff0d21a4e30be248dc25ec6785e2c19da92d37a96bc54793c5",
+      "critic_sha256": "ff8c9cb467282e35adac3da6c191587542084cb818749a77415c718a2f955add"
+    },
+    {
+      "history": [
+        5,
+        42,
+        20,
+        15,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "c5a37a247dde21c4fc837ea069b79b91bb30ce086cc4fa02367d136abaf5d4b4",
+      "critic_sha256": "ff8c9cb467282e35adac3da6c191587542084cb818749a77415c718a2f955add"
+    },
+    {
+      "history": [
+        5,
+        42,
+        20,
+        15,
+        2,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "f82173716d9bb6fec988df79ca9218c5382670a98531c97c9d38fcdf326b5211",
+      "critic_sha256": "b9b62d69719cc5d2724f8bea9d0719bfd9e3a7b34e49bbc77c222a502495186a"
+    },
+    {
+      "history": [
+        5,
+        42,
+        20,
+        15,
+        2,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "3e7cee9f615407957947aa56d8ffbbd015d0d8a07ad639d5c384b6cbe30d8771",
+      "critic_sha256": "b9b62d69719cc5d2724f8bea9d0719bfd9e3a7b34e49bbc77c222a502495186a"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46
+      ],
+      "player": 0,
+      "policy_sha256": "bc78d0ec638e5dcb86be9cf669b3c17d42457c63a91b151e3b1b019d85b03352",
+      "critic_sha256": "f27e12734bd72374d3944df094b12c81167f86207a082d5cb70d98dd5a768573"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46
+      ],
+      "player": 1,
+      "policy_sha256": "f282f81159620db34e44061ea9ee080dfd04035cc74e4fc1744ff4aa6e89380a",
+      "critic_sha256": "f27e12734bd72374d3944df094b12c81167f86207a082d5cb70d98dd5a768573"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "23b9d61875cbd840ffbae6c470fe2bc3a34b3e4f354d6b10482de156066985a3",
+      "critic_sha256": "1659b02e23e40b758b0812f0721149326e619bc6ef49e0df6591092bea273d65"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "75946064537a89907203a612728592186136721999caedd5c25b44d3f3139119",
+      "critic_sha256": "1659b02e23e40b758b0812f0721149326e619bc6ef49e0df6591092bea273d65"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46,
+        2,
+        1,
+        30,
+        16,
+        28
+      ],
+      "player": 0,
+      "policy_sha256": "977beb3f00988196a2c0474bcba7863903c203246fd72922538f2028c9e5e3d3",
+      "critic_sha256": "42e51e2b1e4feb88f80b85275c2fc294d6d0c94101b6190716223a98fcd214dc"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46,
+        2,
+        1,
+        30,
+        16,
+        28
+      ],
+      "player": 1,
+      "policy_sha256": "901b8693699baba9f9f0bfaba8b07ffcd7b1f6262fc589c38eb09db23b6528d6",
+      "critic_sha256": "42e51e2b1e4feb88f80b85275c2fc294d6d0c94101b6190716223a98fcd214dc"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46,
+        2,
+        1,
+        30,
+        16,
+        28,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "de3a831d4c4ab4e69b68709661772bf13e90f9b42cd3ce35e7beb60fb6a55fe8",
+      "critic_sha256": "2e7151076aef46418086062bc11b2e4aed3b66ff59a4df469ac5996fbee37da2"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46,
+        2,
+        1,
+        30,
+        16,
+        28,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "80a7a3ee8a1836f1de2f42612ebd9aae8d3a8eec4137afce2dc1b67ed8453531",
+      "critic_sha256": "2e7151076aef46418086062bc11b2e4aed3b66ff59a4df469ac5996fbee37da2"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46,
+        2,
+        1,
+        30,
+        16,
+        28,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "399e17a9c3c97665b4edf15953381074d1fe18970b74b93d3b9381bd8c1fa605",
+      "critic_sha256": "59c0b016770c568d645aaa918f2a83f31fb2a0f2112caf58a1aa6719766da928"
+    },
+    {
+      "history": [
+        51,
+        6,
+        0,
+        46,
+        2,
+        1,
+        30,
+        16,
+        28,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "0fd7d44c68ffa92d26d55d5bde7c0fede93b96e9d192ab5eb80d15b005b62cb0",
+      "critic_sha256": "59c0b016770c568d645aaa918f2a83f31fb2a0f2112caf58a1aa6719766da928"
+    },
+    {
+      "history": [
+        14,
+        48,
+        36,
+        24
+      ],
+      "player": 0,
+      "policy_sha256": "0533d3dd715f35d344e6581b43a20af1627adc2766ec7bca8dc51d78e183565d",
+      "critic_sha256": "be641a46110f836f8bfafb3e86e623d933630aba5cb147aa2ebe2827f734e458"
+    },
+    {
+      "history": [
+        14,
+        48,
+        36,
+        24
+      ],
+      "player": 1,
+      "policy_sha256": "16d0b58b30fc3d04675738f983011efa35ad44a76839ad292ce6feb35ea0a1eb",
+      "critic_sha256": "be641a46110f836f8bfafb3e86e623d933630aba5cb147aa2ebe2827f734e458"
+    },
+    {
+      "history": [
+        14,
+        48,
+        36,
+        24,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "1b542e1e0fce774a5b478dc879028c6040c89e8f1725df5c70d92eedb3cc4be4",
+      "critic_sha256": "cd98d4058a8072aeb211553525a0e47ed154c8772d666ab623f9f3ad03c43cfc"
+    },
+    {
+      "history": [
+        14,
+        48,
+        36,
+        24,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "4e4b162ae627200a891f107c3f313effc6e66a25c04f17a8ae78274b2bb273dd",
+      "critic_sha256": "cd98d4058a8072aeb211553525a0e47ed154c8772d666ab623f9f3ad03c43cfc"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43
+      ],
+      "player": 0,
+      "policy_sha256": "8320220b73621019cfcd7ee24b5283ccb9e3e10cfb9521ba788ce216e9452daf",
+      "critic_sha256": "f71bb7103e1c337d5c5696b701b8bbb0c29650100cca3c962efa05f24f47eadf"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43
+      ],
+      "player": 1,
+      "policy_sha256": "1d01b416987dee3e1d780d1b5d286c7e104bc9b947f6fb1aa9219c46eccbe675",
+      "critic_sha256": "f71bb7103e1c337d5c5696b701b8bbb0c29650100cca3c962efa05f24f47eadf"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "410c20bebea935d389d9cae1436dad2ff3b3efa2cb65c0075c99956d9a6b6520",
+      "critic_sha256": "e06be7d1a8b7f4d26091783398a58639a740af7e04832af437d5cdac0b800e11"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "cc3276a3f94f03123f35486e23cde8f252e2b0eed416142268afe67dcba74160",
+      "critic_sha256": "e06be7d1a8b7f4d26091783398a58639a740af7e04832af437d5cdac0b800e11"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "4b5e1d7b9f70ced481ad26754bc36e30d4d60d2cfdb162912ad4db494e60e092",
+      "critic_sha256": "3e222f11e9e0f6756e8e04cda1fc3113826ce1a80b7900c47c47ce30f3ee06a3"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "40f820c78543bfd6a05c64b9186d5b41e1172743caf85c8fb3e3e4ea213062c1",
+      "critic_sha256": "3e222f11e9e0f6756e8e04cda1fc3113826ce1a80b7900c47c47ce30f3ee06a3"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "a09ac2c92805eca7f13f86d6073dd94f55cb681d5b5a93c1d385cebbbee1dbf8",
+      "critic_sha256": "3dd469463723f8d2d06543e52c73f6affb8064f2024716b93b5706d24e9e632d"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "cb6cc9b75c3fb7bf3fe2708d272151e43a561869d3f784f54bc8511988af8e40",
+      "critic_sha256": "3dd469463723f8d2d06543e52c73f6affb8064f2024716b93b5706d24e9e632d"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "1e6b5b6c9e1d6e4817847a42ab82641db64bf2f3e802ed561d04927f27fac72d",
+      "critic_sha256": "0233550161f07997406f45f85852f720a0dd0ab8061df4b1352a60aaf7ddfc06"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "e4a4be99c564e8b8f44af5638fe67c85c9009cf3e76bfc992d54d771f8f5a4a6",
+      "critic_sha256": "0233550161f07997406f45f85852f720a0dd0ab8061df4b1352a60aaf7ddfc06"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2,
+        2,
+        2,
+        1,
+        23,
+        51,
+        11
+      ],
+      "player": 0,
+      "policy_sha256": "ada88cda81523a54a62562cf699821728934ae76d6637e449890839c1c69ad32",
+      "critic_sha256": "c315a546c715a57368b75a03342febdefb6314fd7983f27662fb5322604d36f4"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2,
+        2,
+        2,
+        1,
+        23,
+        51,
+        11
+      ],
+      "player": 1,
+      "policy_sha256": "3a37d0635f15418845ade7dff5ebd87879a813799d95fa3c6058726e49284a1e",
+      "critic_sha256": "c315a546c715a57368b75a03342febdefb6314fd7983f27662fb5322604d36f4"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2,
+        2,
+        2,
+        1,
+        23,
+        51,
+        11,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "a8d1c045e5b1466962c4ce4406921d11f6113d49d6b31face170d92897fed9ce",
+      "critic_sha256": "819664d0605c4f4c3234f5d2469b9b70c186d2a59e8dc1dbb03e7ecc4d714bcc"
+    },
+    {
+      "history": [
+        37,
+        7,
+        26,
+        43,
+        1,
+        2,
+        2,
+        2,
+        1,
+        23,
+        51,
+        11,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "fb0df66eabc1a27ff519c6af47ab1e4ef87b2bf9d23e7f673eed9c29bb7aa3e5",
+      "critic_sha256": "819664d0605c4f4c3234f5d2469b9b70c186d2a59e8dc1dbb03e7ecc4d714bcc"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49
+      ],
+      "player": 0,
+      "policy_sha256": "1f0ba5e4f7bab4b895fee5a3e0df929c1a3d0c591dffeabbf30a9e2e00fc6ce6",
+      "critic_sha256": "b7d379cc9dbb5ec2d6c83f048c0bbb6991775aa4d1226bb2f1991352145a4bc3"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49
+      ],
+      "player": 1,
+      "policy_sha256": "b0f7a0707bf31f3e14026c15e49bee845757a76984d1044d3a74cdf538b4d360",
+      "critic_sha256": "b7d379cc9dbb5ec2d6c83f048c0bbb6991775aa4d1226bb2f1991352145a4bc3"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "a5a0bdf5d8c9e96470258eb6fdb220906bd25d78803bb33e44e579aadd1b3df3",
+      "critic_sha256": "40aeb23e64917a16e4bd14a0322d24108d8ce604e91e11a67ba4fc3dc65c935c"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "e56e7162ff739eb1de5b24498b98b838c1947301dbaf6f9dcb1b5d11d7048508",
+      "critic_sha256": "40aeb23e64917a16e4bd14a0322d24108d8ce604e91e11a67ba4fc3dc65c935c"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31
+      ],
+      "player": 0,
+      "policy_sha256": "1a838d4b17c447976e2e1092da571b0f5f559f94ae62b6382a1730050f6c3075",
+      "critic_sha256": "0d67bba086fff9986d38f0d45473b15840117d006dd765f545daa41f6c6242c7"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31
+      ],
+      "player": 1,
+      "policy_sha256": "af7f23568610cca7a9a2254447db714b0f51962a9481218d26f978cd57e49fd7",
+      "critic_sha256": "0d67bba086fff9986d38f0d45473b15840117d006dd765f545daa41f6c6242c7"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "1b7f0525478b9cf6e3fd666838d7fd956a40df97b53219ef30783406adb5b93b",
+      "critic_sha256": "026aa5fb24f1adc959ed516e173e5abd35b3e6e0022b7fc8b616d8c99d15db13"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "2c762171217aea83485185f37d528ebd677678b6a0109726c4a722c383ca2554",
+      "critic_sha256": "026aa5fb24f1adc959ed516e173e5abd35b3e6e0022b7fc8b616d8c99d15db13"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31,
+        1,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "964e52b5a77a5926d847e7972fbd8765145b74fcab314a81b23ce90b71886dc8",
+      "critic_sha256": "47becd331533b8eacceae21da53e1b6a76a766ff6bc2785b4c65a9756f8a7103"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31,
+        1,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "e37af9818321db3c5c909a9aac9fabfb7fb1c2218b89d4314a13b09a938fd57a",
+      "critic_sha256": "47becd331533b8eacceae21da53e1b6a76a766ff6bc2785b4c65a9756f8a7103"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31,
+        1,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "96940032aaed9ce4e498564bec6b98fee2fe372bf600ef7c0d9440689b428b7c",
+      "critic_sha256": "7cacc4e001957c7c3888e36f7c079c96778d73094b151252efbf41571a185bab"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31,
+        1,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "180c18e124d6bed1639f0144b118f2370770509ef9bc7e60a52b68fefe0502c5",
+      "critic_sha256": "7cacc4e001957c7c3888e36f7c079c96778d73094b151252efbf41571a185bab"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31,
+        1,
+        2,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "1d028185d866f7cafba458e63335e0a5bcb8e9e5e00e785fedcc1e7c1d382f96",
+      "critic_sha256": "59b357299cc56a0d8673d7e0bcee859ef092f9518723fb0161ef449b96d91295"
+    },
+    {
+      "history": [
+        17,
+        3,
+        44,
+        49,
+        2,
+        1,
+        26,
+        21,
+        31,
+        1,
+        2,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "19b4053000e26438683054a2826329f7a7af4aae9e0d1d2b247ed64638ead216",
+      "critic_sha256": "59b357299cc56a0d8673d7e0bcee859ef092f9518723fb0161ef449b96d91295"
+    },
+    {
+      "history": [
+        28,
+        27,
+        45,
+        3
+      ],
+      "player": 0,
+      "policy_sha256": "cf8dc5f0b834dd4ab5fd29da8a45d0b8e2f939434110634e1e473aa9ec50a726",
+      "critic_sha256": "a22cdf30888e11ab2c21609f029addbb92073e57f2f7f9bb6aad83f92a6d5abf"
+    },
+    {
+      "history": [
+        28,
+        27,
+        45,
+        3
+      ],
+      "player": 1,
+      "policy_sha256": "f282f81159620db34e44061ea9ee080dfd04035cc74e4fc1744ff4aa6e89380a",
+      "critic_sha256": "a22cdf30888e11ab2c21609f029addbb92073e57f2f7f9bb6aad83f92a6d5abf"
+    },
+    {
+      "history": [
+        3,
+        26,
+        41,
+        36
+      ],
+      "player": 0,
+      "policy_sha256": "7e7bbe73a4ad8d54ec41362ac0bd2540e8054069a7fc82963f6fc3f5b1f43919",
+      "critic_sha256": "00aef4c77bf50cc1268f2cd8ef0bf93a862a84b13acf8c2d25ec28e1e512163f"
+    },
+    {
+      "history": [
+        3,
+        26,
+        41,
+        36
+      ],
+      "player": 1,
+      "policy_sha256": "2aafc30f5b340712d4cd5bed4fe55434294aa9b9dd3d43e2c5510f11cbfd82e2",
+      "critic_sha256": "00aef4c77bf50cc1268f2cd8ef0bf93a862a84b13acf8c2d25ec28e1e512163f"
+    },
+    {
+      "history": [
+        21,
+        47,
+        6,
+        40
+      ],
+      "player": 0,
+      "policy_sha256": "7c2a6f7038e17f878602f365674d4a128ca07aaae65b95c75028f526c09ba061",
+      "critic_sha256": "50bc2a774c4a515ede3efae821d15d728d5ccef95499dc71189bbf873d2ea8a9"
+    },
+    {
+      "history": [
+        21,
+        47,
+        6,
+        40
+      ],
+      "player": 1,
+      "policy_sha256": "87b48f2c9108284255fbbdcd26adefbb8b3844e75a8f9a62cf5c5269b8ce2a6c",
+      "critic_sha256": "50bc2a774c4a515ede3efae821d15d728d5ccef95499dc71189bbf873d2ea8a9"
+    },
+    {
+      "history": [
+        41,
+        51,
+        14,
+        33
+      ],
+      "player": 0,
+      "policy_sha256": "3bdd492a9a05e9e5d7f0ae013e349c62a6fc927fe12ccc1eb1a8eaca9ebf10be",
+      "critic_sha256": "cefed54fce1e7e6c9dfc9283ae0153ec4c36cee5620d93be0ec8a95800628931"
+    },
+    {
+      "history": [
+        41,
+        51,
+        14,
+        33
+      ],
+      "player": 1,
+      "policy_sha256": "9e59b9ad4cfaac2853f951f590882f3d8a4274130ce17d91c5a7576b9246281e",
+      "critic_sha256": "cefed54fce1e7e6c9dfc9283ae0153ec4c36cee5620d93be0ec8a95800628931"
+    },
+    {
+      "history": [
+        4,
+        8,
+        10,
+        37
+      ],
+      "player": 0,
+      "policy_sha256": "39379b43a11909b8b56e4c81c5b11669cadeda56abf20c9ea3fa00b37748bc86",
+      "critic_sha256": "c6bf6d09e95035742562443b9e08d53c5c8c01599eddb180bfea244457da1b94"
+    },
+    {
+      "history": [
+        4,
+        8,
+        10,
+        37
+      ],
+      "player": 1,
+      "policy_sha256": "56e655532b1b77372269a43ea76739a5f498dcdab4f79617e517729d13248a5c",
+      "critic_sha256": "c6bf6d09e95035742562443b9e08d53c5c8c01599eddb180bfea244457da1b94"
+    },
+    {
+      "history": [
+        4,
+        8,
+        10,
+        37,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "861d1b9f3ad9f1637c4220d9d4ef9e66eca34635990c670d9d82d6da9cf4e5fb",
+      "critic_sha256": "935bcee2558367631870443cd7d0a48f37c03f4239728bb81b3216cf701148d8"
+    },
+    {
+      "history": [
+        4,
+        8,
+        10,
+        37,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "9d3c3357c1e721db1f900ff4cb6adf729f1d7a5698ebe9ee1d6b8d210ed9e9fd",
+      "critic_sha256": "935bcee2558367631870443cd7d0a48f37c03f4239728bb81b3216cf701148d8"
+    },
+    {
+      "history": [
+        4,
+        8,
+        10,
+        37,
+        2,
+        1,
+        9,
+        38,
+        41
+      ],
+      "player": 0,
+      "policy_sha256": "eed16c0b96731f1dee66145f3d75231dec6ed7a1ad2877d0799dc981539ab77e",
+      "critic_sha256": "35649a947af35e75e887ff66b0b61b173cc1e6a9fd7e891100588f97c3780e82"
+    },
+    {
+      "history": [
+        4,
+        8,
+        10,
+        37,
+        2,
+        1,
+        9,
+        38,
+        41
+      ],
+      "player": 1,
+      "policy_sha256": "e53647686b74387671a9f27de4c004ffac2a3da4c0d8d403283709311c74b231",
+      "critic_sha256": "35649a947af35e75e887ff66b0b61b173cc1e6a9fd7e891100588f97c3780e82"
+    },
+    {
+      "history": [
+        4,
+        8,
+        10,
+        37,
+        2,
+        1,
+        9,
+        38,
+        41,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "29c463fdea623d3aa926875dbb58d927828693f1c83aadedca36b6fa5e07551d",
+      "critic_sha256": "0f5744342e8232cdc33e05eebedeff75ff278681c24a640f1a63525e49d56736"
+    },
+    {
+      "history": [
+        4,
+        8,
+        10,
+        37,
+        2,
+        1,
+        9,
+        38,
+        41,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "89705639435f3303bca4272e15cfc68d32be021aece10c77ea221ddebb024159",
+      "critic_sha256": "0f5744342e8232cdc33e05eebedeff75ff278681c24a640f1a63525e49d56736"
+    },
+    {
+      "history": [
+        49,
+        42,
+        13,
+        48
+      ],
+      "player": 0,
+      "policy_sha256": "3bdd492a9a05e9e5d7f0ae013e349c62a6fc927fe12ccc1eb1a8eaca9ebf10be",
+      "critic_sha256": "10061f2f224ad07f2a591fc7032e427201b9f6eab1857532109bf0c21c5b8a78"
+    },
+    {
+      "history": [
+        49,
+        42,
+        13,
+        48
+      ],
+      "player": 1,
+      "policy_sha256": "2e014698cdb7809e4e01e36e3524f3096881ae777b9fff46f3e1c027e0d3bf28",
+      "critic_sha256": "10061f2f224ad07f2a591fc7032e427201b9f6eab1857532109bf0c21c5b8a78"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3
+      ],
+      "player": 0,
+      "policy_sha256": "c6a57193bb8ec7ae97b46d1af79d9f9b057588a2f6c78d56c52c2d366eb63bc7",
+      "critic_sha256": "0b00500ac0426ee5b6bba4507e2563d6705132ab193bc77ea2102ba9481cb55d"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3
+      ],
+      "player": 1,
+      "policy_sha256": "0e5a973c4e09240631edec3799249cb8f7f12e437a7185e25374abd33664be08",
+      "critic_sha256": "0b00500ac0426ee5b6bba4507e2563d6705132ab193bc77ea2102ba9481cb55d"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "a9ecd99ed996d6fd7965335f6576125d30bfb94338b5cfc185c24df721d9e735",
+      "critic_sha256": "e138b762bdcd0b69c717bda0dcb22bb7984c26d4230b04bbf37dd8d6711087b5"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "79cf3c868055918274aac826d345a9579aded72f79c4a5dee3dc6e7e9db93551",
+      "critic_sha256": "e138b762bdcd0b69c717bda0dcb22bb7984c26d4230b04bbf37dd8d6711087b5"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3,
+        1,
+        1,
+        20,
+        16,
+        44
+      ],
+      "player": 0,
+      "policy_sha256": "1311ae52fe6295cf744f1e8967396d5d0f21e8637f079a58eb1bbbe5223a4b26",
+      "critic_sha256": "115afac53d44e87f2306b3e46547f0145d6174f92aed62fbf0be2455940fe8ca"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3,
+        1,
+        1,
+        20,
+        16,
+        44
+      ],
+      "player": 1,
+      "policy_sha256": "ddad7ac6e46a8db20a458dab241f55719220e6a6260eeae2521dfbeed623ed1b",
+      "critic_sha256": "115afac53d44e87f2306b3e46547f0145d6174f92aed62fbf0be2455940fe8ca"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3,
+        1,
+        1,
+        20,
+        16,
+        44,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "eebc26cc1304666d5bba43e4c3e799e7125fc9d4092301386c001140c9f6cb7f",
+      "critic_sha256": "5665d23f14d349372f01e82acbbdd96f3b5fdea257301d71a10f55c1f46ff23e"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3,
+        1,
+        1,
+        20,
+        16,
+        44,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "09ee0228a6500012c2397ae4da2ba177bffa9c72fa73755cf257add6717ee71b",
+      "critic_sha256": "5665d23f14d349372f01e82acbbdd96f3b5fdea257301d71a10f55c1f46ff23e"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3,
+        1,
+        1,
+        20,
+        16,
+        44,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "f9dfe714c4544216e28045145fbf8659d9400501674fdeaec37d1d6d8888d1fe",
+      "critic_sha256": "d5dede6c038f9c129b033de91a31e633224e80770d8271b90d6e79e45095b37b"
+    },
+    {
+      "history": [
+        8,
+        18,
+        26,
+        3,
+        1,
+        1,
+        20,
+        16,
+        44,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "b5b2403e257b4659b4029f05adbf85c9c2df60aabf428c830fcd7ac7e8081b89",
+      "critic_sha256": "d5dede6c038f9c129b033de91a31e633224e80770d8271b90d6e79e45095b37b"
+    },
+    {
+      "history": [
+        9,
+        32,
+        49,
+        8
+      ],
+      "player": 0,
+      "policy_sha256": "f1e6aae852a804b6e124d18f2f562669b089a1323567767bd2b28301791c9018",
+      "critic_sha256": "0cef381cf0bf071bca948e43128b871908d7b4eb59be86003dd571e77a890ca4"
+    },
+    {
+      "history": [
+        9,
+        32,
+        49,
+        8
+      ],
+      "player": 1,
+      "policy_sha256": "e6dcb48c5065121b1fe9d1f5e8696005cdf764ed1e106bf7f40283eb20a657cc",
+      "critic_sha256": "0cef381cf0bf071bca948e43128b871908d7b4eb59be86003dd571e77a890ca4"
+    },
+    {
+      "history": [
+        9,
+        32,
+        49,
+        8,
+        1
+      ],
+      "player": 0,
+      "policy_sha256": "2bace82d56404dd283c78ae443650fa9438ad45b61caeef676fb3a031ff509f3",
+      "critic_sha256": "53eaeee2a48b8b780cdddff36bcdec398dbe3c2a99c7de29483329a09dc27e45"
+    },
+    {
+      "history": [
+        9,
+        32,
+        49,
+        8,
+        1
+      ],
+      "player": 1,
+      "policy_sha256": "d3784bacb675bd7ad0f3c4a47dbdeda096cf7689135da074ce43e919bd5e2190",
+      "critic_sha256": "53eaeee2a48b8b780cdddff36bcdec398dbe3c2a99c7de29483329a09dc27e45"
+    },
+    {
+      "history": [
+        9,
+        32,
+        49,
+        8,
+        1,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "f8e40e17a5f7d1b75b172bf1d1faf7216c54d23a8efff4cc93dc27e14f8f8ae4",
+      "critic_sha256": "818d870338db5f2bdfcf014734e3dea2f5f7fee51eac7f3413822e7c9bc5dcff"
+    },
+    {
+      "history": [
+        9,
+        32,
+        49,
+        8,
+        1,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "979336da90162100ffb1eefa0cf93047e367258ef6e8ce4bea6820dbe437dfe1",
+      "critic_sha256": "818d870338db5f2bdfcf014734e3dea2f5f7fee51eac7f3413822e7c9bc5dcff"
+    },
+    {
+      "history": [
+        37,
+        8,
+        31,
+        20
+      ],
+      "player": 0,
+      "policy_sha256": "7582b65e509ea1894e016df3867b0ba2a409f0da30b6fb880557f83032001cc4",
+      "critic_sha256": "cf46c29786b5f697d591b77adab48502bac1519f3add845d8e6d3af401e420a4"
+    },
+    {
+      "history": [
+        37,
+        8,
+        31,
+        20
+      ],
+      "player": 1,
+      "policy_sha256": "feefe58ae60324ba3369fe5fe9f73a6dd247a0de6eeb2ce2a072362f7e99a360",
+      "critic_sha256": "cf46c29786b5f697d591b77adab48502bac1519f3add845d8e6d3af401e420a4"
+    },
+    {
+      "history": [
+        37,
+        8,
+        31,
+        20,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "2db98ae203ed7174b196c636be832e3f6f9c5a82fbe78b1f4b7bab9ee28922db",
+      "critic_sha256": "d5c30cd2461325590061672fb4beb0a5de7bf1a5b83db429a1ff44a816952f60"
+    },
+    {
+      "history": [
+        37,
+        8,
+        31,
+        20,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "da2978553a66428dedd14670dae403fb26db493147a4e9a232568ba6c8fb1473",
+      "critic_sha256": "d5c30cd2461325590061672fb4beb0a5de7bf1a5b83db429a1ff44a816952f60"
+    },
+    {
+      "history": [
+        38,
+        18,
+        0,
+        43
+      ],
+      "player": 0,
+      "policy_sha256": "f8afefd9f9f8925e21428cf07ab78471baa3f13d83aca1a440c84caef2c339c6",
+      "critic_sha256": "cb6188eb61921fafe974904dcecbed963c2fd59b0e15c1a6e1209585caf23691"
+    },
+    {
+      "history": [
+        38,
+        18,
+        0,
+        43
+      ],
+      "player": 1,
+      "policy_sha256": "3e80031b3b74b45a469bc5712e5a3db51d08802255ecd8110971e800a1f6139f",
+      "critic_sha256": "cb6188eb61921fafe974904dcecbed963c2fd59b0e15c1a6e1209585caf23691"
+    },
+    {
+      "history": [
+        38,
+        18,
+        0,
+        43,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "a2bab11b4957cb8bc2c77ac2e2206867df9e5c63650eecd3bd15a0b01f690e7e",
+      "critic_sha256": "62696b0799dc3345cbbe4bdcfb2a6591fa810e56787b25a24b5606abe7365c41"
+    },
+    {
+      "history": [
+        38,
+        18,
+        0,
+        43,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "17db80cbba3123b54ca24350e2aa1f586c0faf3619829ed964e61dc75a546945",
+      "critic_sha256": "62696b0799dc3345cbbe4bdcfb2a6591fa810e56787b25a24b5606abe7365c41"
+    },
+    {
+      "history": [
+        38,
+        18,
+        0,
+        43,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "f3d15bff15e12b8652fb8cf439a62f1482385836ee5020b65ad5ab8a6758f1d6",
+      "critic_sha256": "9af78e0cd28a5db35f696fa21072216bbe9d25069565327c60aa0afb8202db2a"
+    },
+    {
+      "history": [
+        38,
+        18,
+        0,
+        43,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "c77dc438eb4cea4dc69c06d033edd25179651af5ec131f4eea52141f8e23de33",
+      "critic_sha256": "9af78e0cd28a5db35f696fa21072216bbe9d25069565327c60aa0afb8202db2a"
+    },
+    {
+      "history": [
+        20,
+        11,
+        24,
+        45
+      ],
+      "player": 0,
+      "policy_sha256": "7f90f94a115a74caf49906ff24c9736a6205957541f2e3ab558340c92503fd64",
+      "critic_sha256": "4e21bb20cd8b59cecb07be5cc27234a5055c01747a2e0b952e56fc19b563d253"
+    },
+    {
+      "history": [
+        20,
+        11,
+        24,
+        45
+      ],
+      "player": 1,
+      "policy_sha256": "076c877b40089a32124e33215be413f2f4ee9746a67f0c159e2cb5b3be1a7c85",
+      "critic_sha256": "4e21bb20cd8b59cecb07be5cc27234a5055c01747a2e0b952e56fc19b563d253"
+    },
+    {
+      "history": [
+        10,
+        41,
+        3,
+        15
+      ],
+      "player": 0,
+      "policy_sha256": "a1202254ae16afc3786343413b18ffe109a94f858636b45021b304f30ebc883f",
+      "critic_sha256": "eb84fa413924058bdc15cedb176f2875bc3ca930a1538f60995caf8a443a9feb"
+    },
+    {
+      "history": [
+        10,
+        41,
+        3,
+        15
+      ],
+      "player": 1,
+      "policy_sha256": "bd54501f8fe54f85ba06f16f8a96acc59f11e53ab5e18e710630377921c44deb",
+      "critic_sha256": "eb84fa413924058bdc15cedb176f2875bc3ca930a1538f60995caf8a443a9feb"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0
+      ],
+      "player": 0,
+      "policy_sha256": "40aebd6c5eeeef6d10732cd53dc0e3bad4d93073500d7c9af7ab11b9d4b4e0d5",
+      "critic_sha256": "d45f98af4cbf94d93b561cc86c4897c5a7f6d97c86dafba1a05d766a2d36faa0"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0
+      ],
+      "player": 1,
+      "policy_sha256": "f282f81159620db34e44061ea9ee080dfd04035cc74e4fc1744ff4aa6e89380a",
+      "critic_sha256": "d45f98af4cbf94d93b561cc86c4897c5a7f6d97c86dafba1a05d766a2d36faa0"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "202a59e269b7a6a8d23fb45f4554bcb3b8e1a360ea1d9e75eb0800a2eb4ac473",
+      "critic_sha256": "3100b73ffdafa16e79d17d55856a19e31a96525a22f7d16af8ae20774d0e2e73"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "75946064537a89907203a612728592186136721999caedd5c25b44d3f3139119",
+      "critic_sha256": "3100b73ffdafa16e79d17d55856a19e31a96525a22f7d16af8ae20774d0e2e73"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2,
+        1,
+        22,
+        43,
+        19
+      ],
+      "player": 0,
+      "policy_sha256": "36584ae30a76ddc9f1f1dae02363d6869cddbff93d46c9504e1807b54e46c4ab",
+      "critic_sha256": "5fc5ff757c9c467f0cd9c77d6f7b74c9c4f96a207bd70cc00ae4464925620152"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2,
+        1,
+        22,
+        43,
+        19
+      ],
+      "player": 1,
+      "policy_sha256": "14630d62fe2684dad25dc296d1e028978e2cfb0c1f4f808d4f8aa0e6651a9589",
+      "critic_sha256": "5fc5ff757c9c467f0cd9c77d6f7b74c9c4f96a207bd70cc00ae4464925620152"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2,
+        1,
+        22,
+        43,
+        19,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "067731620e07c239ddc8b66ca1314cf0da4961726632d4c7931ce660066dfd1a",
+      "critic_sha256": "6d9e100334bb29490ce0e6ed6de06603cf51ec6c5940091272879d7f81fedc9b"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2,
+        1,
+        22,
+        43,
+        19,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "a8567e9df55841e853d5ba85bedc5fc63ff2160b514533352aaa601b9d5d3156",
+      "critic_sha256": "6d9e100334bb29490ce0e6ed6de06603cf51ec6c5940091272879d7f81fedc9b"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2,
+        1,
+        22,
+        43,
+        19,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "2b41ce5a929da03a706a5f4eb9e24b7aceff19797bea8f00cae3fc76a1c63ee7",
+      "critic_sha256": "600d8b4806d7ae9dec4c7e7db1e24eacf238319577914b43180ad60374856987"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2,
+        1,
+        22,
+        43,
+        19,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "03cc6ab80de45bed73e9ea6a65ead885f1583ef0bbbe733d89540ac46081788d",
+      "critic_sha256": "600d8b4806d7ae9dec4c7e7db1e24eacf238319577914b43180ad60374856987"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2,
+        1,
+        22,
+        43,
+        19,
+        2,
+        2,
+        2
+      ],
+      "player": 0,
+      "policy_sha256": "d178d6ae2cf53de68d0d91464c729cf820e6f574cb38220b5f6abcb5683c9434",
+      "critic_sha256": "ca8402c522e1c4796f2eef9ac119bdf2d40ab5764ab7744c5af42727f859d6c6"
+    },
+    {
+      "history": [
+        12,
+        41,
+        47,
+        0,
+        2,
+        1,
+        22,
+        43,
+        19,
+        2,
+        2,
+        2
+      ],
+      "player": 1,
+      "policy_sha256": "7eb50c5f93521f1ac15f10941e43ed194c1e758497e89983442f0ac76b185e26",
+      "critic_sha256": "ca8402c522e1c4796f2eef9ac119bdf2d40ab5764ab7744c5af42727f859d6c6"
+    }
+  ]
+}

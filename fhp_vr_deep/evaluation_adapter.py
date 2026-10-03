@@ -27,10 +27,12 @@ def _import_suite():
 
 def load_policy_for_evaluation(snapshot_path):
     _import_suite()
-    from fhp_evaluation.loaders import load_checkpoint_policy
+    # The suite's generic MLP loader assumes raw OpenSpiel tensors. The native
+    # versioned loader handles both raw and encoded VR-Deep snapshots safely.
+    from vr_deep_cfr.policy_snapshots import LoadedVRPolicy
 
     game = load_fhp_game()
-    return game, load_checkpoint_policy(game, snapshot_path)
+    return game, LoadedVRPolicy(game, snapshot_path)
 
 
 def evaluate_checkpoint(

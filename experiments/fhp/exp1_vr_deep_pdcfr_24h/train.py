@@ -19,8 +19,8 @@ from fhp_vr_deep.io_utils import (canonical_sha256, json_default, peak_rss_mib,
 from vr_deep_cfr import VRDeepPDCFRPlus
 from vr_deep_cfr.logger import Logger
 from vr_deep_cfr.policy_snapshots import LoadedVRPolicy, save_policy_snapshot
-from .config import (ALGORITHM_ID, ALGORITHM_LABEL, SEEDS, THREADS, contract,
-                     schedule, task_name)
+from . import config as default_experiment
+from .config import THREADS
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -90,12 +90,12 @@ class TimedVRDeepPDCFRPlus(VRDeepPDCFRPlus):
             self.at_iteration_boundary = False
 
 
-def make_solver(seed, config):
+def make_solver(seed, config, *, solver_class=TimedVRDeepPDCFRPlus):
     kwargs = {k: v for k, v in config.items()
               if k not in ("max_num_iterations", "preserve_evaluation_rng")}
     kwargs.update(seed=seed, logger=Logger(verbose=True),
                   num_episodes=2 * config["num_traversals"] * config["max_num_iterations"])
-    solver = TimedVRDeepPDCFRPlus(**kwargs)
+    solver = solver_class(**kwargs)
     solver.max_num_iterations = config["max_num_iterations"]
     solver.preserve_evaluation_rng = config["preserve_evaluation_rng"]
     solver.stop_after_final_training_time_checkpoint = True
@@ -117,7 +117,10 @@ def verify_policy(path, solver=None):
     return policy.metadata
 
 
-def run_worker(output_root, task_index, *, smoke=False, remote_uri=None, threads=THREADS):
+def run_worker(output_root, task_index, *, smoke=False, remote_uri=None, threads=THREADS,
+               experiment=default_experiment, solver_factory=None):
+    ALGORITHM_ID, ALGORITHM_LABEL = experiment.ALGORITHM_ID, experiment.ALGORITHM_LABEL
+    SEEDS, schedule, task_name = experiment.SEEDS, experiment.schedule, experiment.task_name
     if smoke and task_index != 0:
         raise ValueError("Smoke uses seed 0 only")
     if threads < 1 or (not smoke and threads != THREADS):
@@ -130,7 +133,7 @@ def run_worker(output_root, task_index, *, smoke=False, remote_uri=None, threads
     # No silent overwrite/restart: policy snapshots are not resumable states.
     worker_dir.mkdir(parents=True, exist_ok=False)
     torch.set_num_threads(threads)
-    spec = contract(smoke)
+    spec = experiment.contract(smoke)
     config = spec["training_config"]
     manifest = dict(spec, seed=seed, task_index=task_index, game=serialisable_game_definition(),
                     repository_commit=repository_commit(ROOT), torch_threads=torch.get_num_threads(),
@@ -142,7 +145,7 @@ def run_worker(output_root, task_index, *, smoke=False, remote_uri=None, threads
     solver = None
     snapshots, curves = [], []
     try:
-        solver = make_solver(seed, config)
+        solver = (solver_factory or make_solver)(seed, config)
         solver.training_time_checkpoint_seconds = tuple(r["checkpoint_target_seconds"] for r in schedule(smoke))
 
         def progress(active):
@@ -197,12 +200,16 @@ def run_worker(output_root, task_index, *, smoke=False, remote_uri=None, threads
                        nodes_per_training_second=solver.nodes_touched / final["training_elapsed_seconds"],
                        peak_rss_mib=peak_rss_mib(), phase_seconds=solver.phase_seconds,
                        final_policy_snapshot=final["path"], final_policy_sha256=final["sha256"],
-                       buffers={})
+                       buffers={}, model_parameters={}, input_sizes={})
         for name, trainer in (("policy", solver.ave_policy_trainer), ("critic", solver.q_value_trainer),
                               ("regret_0", solver.regret_trainers[0]), ("regret_1", solver.regret_trainers[1])):
             buf = trainer.buffer
             summary["buffers"][name] = dict(occupancy=min(len(buf), buf.buffer_size),
-                                           seen_or_write_index=buf.cur_id, capacity=buf.buffer_size)
+                                           seen_or_write_index=buf.cur_id, capacity=buf.buffer_size,
+                                           array_bytes=sum(a.nbytes for a in vars(buf).values()
+                                                           if isinstance(a, np.ndarray)))
+            summary["model_parameters"][name] = sum(p.numel() for p in trainer.model.parameters())
+            summary["input_sizes"][name] = trainer.input_size
         write_json(worker_dir / "summary.json", summary)
         files = [p for p in worker_dir.rglob("*") if p.is_file() and not p.name.endswith(".tmp")]
         success = dict(seed=seed, experiment_name=spec["experiment_name"],

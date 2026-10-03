@@ -14,6 +14,13 @@ import time
 REPO_URL = "https://github.com/lawrencewlcknight/fhp-vr-deep-experiments.git"
 MODULE = "experiments.fhp.exp1_vr_deep_pdcfr_24h"
 STAGES = ("smoke", "train", "aggregate")
+DEFAULT_EXPERIMENT = dict(number=1, module=MODULE, algorithm_id="vr_deep_pdcfr_plus",
+                          batch_script="gcp/exp1_vr_deep_pdcfr_24h_batch.py",
+                          test_files=("tests/test_exp1_vr_deep_pdcfr_24h.py", "tests/test_efficiency.py"))
+
+
+def settings(args):
+    return getattr(args, "experiment", DEFAULT_EXPERIMENT)
 
 
 def q(value):
@@ -21,6 +28,7 @@ def q(value):
 
 
 def bootstrap(args, *, controller=False):
+    number = settings(args)["number"]
     text = f"""#!/usr/bin/env bash
 set -Eeuo pipefail
 export DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1
@@ -31,7 +39,7 @@ if command -v sudo >/dev/null 2>&1; then SUDO=sudo; else SUDO=; fi
 $SUDO apt-get update
 $SUDO apt-get install -y git curl ca-certificates python3 python3-venv python3-dev build-essential
 command -v gcloud >/dev/null || {{ echo 'Batch image must provide gcloud' >&2; exit 1; }}
-WORK=/workspace/vr-exp1
+WORK=/workspace/vr-exp{number}
 mkdir -p "$WORK"
 git clone --filter=blob:none {q(REPO_URL)} "$WORK/repository"
 cd "$WORK/repository"
@@ -56,13 +64,15 @@ mkdir -p "$OUT"
 
 
 def script(args, stage):
+    spec = settings(args)
+    module = spec["module"]
     remote = f"{args.bucket}/{args.run_id}"
     env = dict(PROJECT_ID=args.project, REGION=args.region, BUCKET=args.bucket,
                SA_EMAIL=args.service_account, REPO_REF=args.repo_ref, RUN_ID=args.run_id)
     exports = "\n".join(f"export {key}={q(value)}" for key, value in env.items()) + "\n"
     if stage == "controller":
         return bootstrap(args, controller=True) + exports + (
-            "exec python3 gcp/exp1_vr_deep_pdcfr_24h_batch.py orchestrate\n")
+            f"exec python3 {q(spec['batch_script'])} orchestrate\n")
     text = bootstrap(args) + exports
     if stage == "smoke":
         return text + f"""
@@ -73,17 +83,17 @@ finish() {{
 }}
 trap finish EXIT
 python -m pip install -r requirements-dev.txt
-python -m pytest -q -p no:cacheprovider tests/test_exp1_vr_deep_pdcfr_24h.py tests/test_efficiency.py
+python -m pytest -q -p no:cacheprovider {' '.join(q(p) for p in spec['test_files'])}
 python -m benchmarks.vr_deep_efficiency --threads 8 --iterations 2 --traversals 2048 --capacity 16384 \
   --batch 2048 --regret-steps 32 --critic-steps 101 --policy-steps 16 --seeds 0 1 2 \
   | tee "$OUT/equivalence.jsonl"
-python -m {MODULE}.run smoke --output-root "$OUT/training" --threads 8
+python -m {module}.run smoke --output-root "$OUT/training" --threads 8
 """
     if stage == "train":
         return text + f"""
 INDEX="${{BATCH_TASK_INDEX:?Missing Batch task index}}"
 case "$INDEX" in 0|1|2) ;; *) exit 2 ;; esac
-TASK="task_$(printf '%03d' "$INDEX")_vr_deep_pdcfr_plus_seed_$INDEX"
+TASK="task_$(printf '%03d' "$INDEX")_{spec['algorithm_id']}_seed_$INDEX"
 REMOTE={q(remote + '/workers')}/$TASK
 DIAGNOSTICS="$WORK/diagnostics"
 mkdir -p "$DIAGNOSTICS"
@@ -110,12 +120,12 @@ finish() {{
 }}
 trap finish EXIT
 trap 'exit 143' TERM
-python -m {MODULE}.run worker --task-index "$INDEX" --output-root "$OUT" --remote-uri "$REMOTE"
+python -m {module}.run worker --task-index "$INDEX" --output-root "$OUT" --remote-uri "$REMOTE"
 """
     if stage == "aggregate":
         return text + f"""
 gcloud storage rsync --recursive {q(remote + '/workers')} "$OUT/workers"
-python -m {MODULE}.run aggregate --output-root "$OUT"
+python -m {module}.run aggregate --output-root "$OUT"
 gcloud storage rsync --recursive --exclude='(^|/)SUCCESS[.]json$' "$OUT/analysis" {q(remote + '/analysis')}
 gcloud storage cp "$OUT/analysis/SUCCESS.json" {q(remote + '/analysis/SUCCESS.json')}
 """
@@ -138,7 +148,7 @@ def build_job(args, stage):
                 instances=[dict(policy=dict(machineType=machine, provisioningModel="STANDARD",
                 bootDisk=dict(sizeGb=disk, type="pd-balanced")))]),
                 logsPolicy=dict(destination="CLOUD_LOGGING"),
-                labels=dict(experiment="fhp-vr-exp1-24h", stage=stage))
+                labels=dict(experiment=f"fhp-vr-exp{settings(args)['number']}-24h", stage=stage))
 
 
 def cloud(args, *command, capture=False, check=True):
@@ -222,13 +232,14 @@ def preflight(args):
         raise RuntimeError(result.stderr or "Unable to check destination namespace")
 
 
-def main():
+def main(*, experiment=DEFAULT_EXPERIMENT):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("action", choices=("run", "orchestrate", "status", "dry-run", "aggregate-only"))
     for name, env in (("project", "PROJECT_ID"), ("region", "REGION"), ("bucket", "BUCKET"),
                       ("service-account", "SA_EMAIL"), ("repo-ref", "REPO_REF"), ("run-id", "RUN_ID")):
         parser.add_argument("--" + name, default=os.environ.get(env))
     args = parser.parse_args()
+    args.experiment = experiment
     try:
         validate(args)
     except ValueError as exc:

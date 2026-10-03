@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 
 from fhp_vr_deep.io_utils import read_json, sha256_file, stats, write_csv
-from .config import ALGORITHM_ID, EXPERIMENT_NAME, SEEDS, contract, schedule, task_name
+from . import config as default_experiment
 from .train import verify_policy, write_json
 
 
@@ -19,7 +19,9 @@ def safe_path(root, relative):
     return resolved
 
 
-def verify_worker(worker_dir, *, smoke=False):
+def verify_worker(worker_dir, *, smoke=False, experiment=default_experiment):
+    ALGORITHM_ID, EXPERIMENT_NAME = experiment.ALGORITHM_ID, experiment.EXPERIMENT_NAME
+    schedule = experiment.schedule
     worker_dir = Path(worker_dir)
     success = read_json(worker_dir / "SUCCESS.json")
     required = {"run_manifest.json", "summary.json", "checkpoint_manifest.json",
@@ -33,11 +35,14 @@ def verify_worker(worker_dir, *, smoke=False):
     manifest = read_json(worker_dir / "run_manifest.json")
     summary = read_json(worker_dir / "summary.json")
     snapshots = read_json(worker_dir / "checkpoint_manifest.json")
-    expected = contract(smoke)
+    expected = experiment.contract(smoke)
     for key in ("experiment_name", "algorithm_id", "training_config", "training_config_sha256",
-                "checkpoint_schedule", "is_smoke", "checkpoint_boundary", "artifact_retention"):
+                "checkpoint_schedule", "is_smoke", "checkpoint_boundary", "artifact_retention",
+                "input_representation", "replay_storage"):
         if manifest[key] != expected[key]:
             raise ValueError(f"Worker has wrong {key}")
+    if manifest.get("feature_encoder") != expected.get("feature_encoder"):
+        raise ValueError("Worker has wrong feature encoder")
     if (summary["seed"] != manifest["seed"] or success["seed"] != manifest["seed"]
             or summary["is_smoke"] != smoke or summary["algorithm_id"] != ALGORITHM_ID
             or summary["checkpoint_count"] != 4
@@ -62,6 +67,8 @@ def verify_worker(worker_dir, *, smoke=False):
         if success["files"].get(row["path"]) != row["sha256"]:
             raise ValueError("Policy absent from verified success inventory")
         metadata = verify_policy(safe_path(worker_dir, row["path"]))
+        if metadata.get("feature_encoder") != expected.get("feature_encoder"):
+            raise ValueError("Playable policy has wrong feature encoder")
         if (metadata["seed"] != row["seed"] or metadata["algorithm_id"] != ALGORITHM_ID
                 or metadata["nodes_touched"] != row["nodes_touched"]
                 or metadata["iteration"] != row["completed_iteration"]
@@ -78,7 +85,9 @@ def verify_worker(worker_dir, *, smoke=False):
     return manifest, summary, snapshots
 
 
-def aggregate(output_root, *, smoke=False):
+def aggregate(output_root, *, smoke=False, experiment=default_experiment):
+    ALGORITHM_ID, EXPERIMENT_NAME = experiment.ALGORITHM_ID, experiment.EXPERIMENT_NAME
+    SEEDS, schedule, task_name = experiment.SEEDS, experiment.schedule, experiment.task_name
     root = Path(output_root)
     expected_seeds = (0,) if smoke else SEEDS
     expected_dirs = {task_name(SEEDS.index(seed)) for seed in expected_seeds}
@@ -88,7 +97,7 @@ def aggregate(output_root, *, smoke=False):
     manifests, summaries, checkpoints, progress = [], [], [], []
     for index, seed in enumerate(expected_seeds):
         worker_dir = root / "workers" / task_name(index)
-        manifest, summary, rows = verify_worker(worker_dir, smoke=smoke)
+        manifest, summary, rows = verify_worker(worker_dir, smoke=smoke, experiment=experiment)
         if manifest["seed"] != seed or manifest["task_index"] != index:
             raise ValueError("Worker seed does not match task directory")
         manifests.append(manifest)
@@ -126,14 +135,14 @@ def aggregate(output_root, *, smoke=False):
     write_json(analysis / "summary.json", dict(experiment_name=EXPERIMENT_NAME,
                seeds=list(expected_seeds), policy_count=len(checkpoints), is_smoke=smoke,
                exact_exploitability=False, evaluation_status="deferred_to_shared_suite",
-               checkpoint_metrics=aggregated, contract=contract(smoke)))
-    _plot(analysis, checkpoints, aggregated)
+               checkpoint_metrics=aggregated, contract=experiment.contract(smoke)))
+    _plot(analysis, checkpoints, aggregated, title=experiment.ALGORITHM_LABEL)
     write_json(analysis / "SUCCESS.json", dict(experiment_name=EXPERIMENT_NAME, seeds=list(expected_seeds),
                files={p.name: sha256_file(p) for p in analysis.iterdir() if p.is_file() and p.name != "SUCCESS.json"}))
     return analysis
 
 
-def _plot(output, rows, aggregated):
+def _plot(output, rows, aggregated, *, title="FHP VR-DeepPDCFR+ — 24-hour baseline"):
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -147,7 +156,7 @@ def _plot(output, rows, aggregated):
                 yerr=[(r["nodes_touched_se"] or 0) / 1e6 for r in aggregated],
                 color="black", marker="o", capsize=3, label="Mean ± one SE")
     ax.set(xlabel="Actual active training hours", ylabel="Training nodes (millions)",
-           title="FHP VR-DeepPDCFR+ — 24-hour baseline")
+           title=title)
     ax.legend()
     fig.tight_layout()
     fig.savefig(output / "nodes_by_training_time.png", dpi=160)

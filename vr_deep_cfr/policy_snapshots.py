@@ -16,6 +16,7 @@ from .solver import MLP
 
 SNAPSHOT_TYPE = "vr_deep_cfr_policy_snapshot"
 SNAPSHOT_VERSION = 2
+ENCODED_SNAPSHOT_VERSION = 3
 
 
 def snapshot_filename(algorithm_id: str, seed: int) -> str:
@@ -39,9 +40,9 @@ def save_policy_snapshot(
         name: tensor.detach().cpu().clone()
         for name, tensor in solver.ave_policy_trainer.model.state_dict().items()
     }
-    torch.save(
-        {
-            "version": SNAPSHOT_VERSION,
+    encoder = getattr(solver, "feature_encoder", None)
+    payload = {
+            "version": ENCODED_SNAPSHOT_VERSION if encoder is not None else SNAPSHOT_VERSION,
             "type": SNAPSHOT_TYPE,
             "algorithm_id": str(algorithm_id),
             "algorithm_label": str(algorithm_label),
@@ -56,9 +57,10 @@ def save_policy_snapshot(
             "input_size": int(solver.infostate_size),
             "num_actions": int(solver.action_size),
             "authors_parameterisation": dict(config),
-        },
-        path,
-    )
+        }
+    if encoder is not None:
+        payload["feature_encoder"] = encoder.metadata()
+    torch.save(payload, path)
     return path
 
 
@@ -67,11 +69,19 @@ def load_policy_snapshot_payload(path: str | Path) -> dict:
     snapshot = torch.load(Path(path), map_location="cpu", weights_only=False)
     if snapshot.get("type") != SNAPSHOT_TYPE:
         raise ValueError(f"Not a VR-Deep policy snapshot: {path}")
-    if int(snapshot.get("version", -1)) != SNAPSHOT_VERSION:
+    version = int(snapshot.get("version", -1))
+    if version not in (SNAPSHOT_VERSION, ENCODED_SNAPSHOT_VERSION):
         raise ValueError(f"Unsupported VR-Deep snapshot version: {snapshot.get('version')!r}")
     parameters = snapshot.get("game", {}).get("parameters")
     if parameters != dict(FHP_GAME_PARAMETERS):
         raise ValueError("Snapshot does not use the canonical FHP game definition")
+    if version == ENCODED_SNAPSHOT_VERSION:
+        from fhp_vr_deep.features import encoder_from_metadata
+        encoder = encoder_from_metadata(snapshot.get("feature_encoder"))
+        if snapshot.get("input_size") != encoder.policy_size:
+            raise ValueError("Encoded snapshot input size does not match its encoder")
+    elif snapshot.get("feature_encoder") is not None or snapshot.get("input_size") != 190:
+        raise ValueError("Raw snapshot must have 190 inputs and no feature encoder")
     return snapshot
 
 
@@ -82,6 +92,10 @@ class LoadedVRPolicy(policy.Policy):
         super().__init__(game, list(range(game.num_players())))
         self.path = Path(snapshot_path)
         snapshot = load_policy_snapshot_payload(self.path)
+        self.feature_encoder = None
+        if snapshot["version"] == ENCODED_SNAPSHOT_VERSION:
+            from fhp_vr_deep.features import encoder_from_metadata
+            self.feature_encoder = encoder_from_metadata(snapshot["feature_encoder"])
         self.metadata = {
             key: value for key, value in snapshot.items() if key != "policy_state_dict"
         }
@@ -99,7 +113,8 @@ class LoadedVRPolicy(policy.Policy):
         if not legal_actions:
             return {}
         info_state = torch.as_tensor(
-            state.information_state_tensor(player), dtype=torch.float32
+            (self.feature_encoder.information_state(state, player) if self.feature_encoder is not None
+             else state.information_state_tensor(player)), dtype=torch.float32
         )
         legal_mask = torch.as_tensor(
             state.legal_actions_mask(player), dtype=torch.float32

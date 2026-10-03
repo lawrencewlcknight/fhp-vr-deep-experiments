@@ -25,3 +25,9 @@ reuse traversal inputs, and cache only fit-local frozen predictions. They retain
 the update equations, sampling RNG sequence, optimiser schedule and target-critic
 refreshes. See `docs/IMPLEMENTATION_EFFICIENCY.md` for the equivalence audit,
 memory accounting and limitations.
+
+Experiment 2's `encoded_solver.py` is a local representation experiment, not
+part of the upstream VR-Deep implementation. It applies the UCV-ESCHER FHP
+Experiment 2 feature encoder while inheriting the VR-Deep fitting and update
+rules unchanged. Encoder provenance and information boundaries are documented
+in `docs/EXP2_ENCODER_PROVENANCE.md`.
