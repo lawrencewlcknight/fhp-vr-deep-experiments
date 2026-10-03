@@ -47,7 +47,7 @@ git checkout --detach {q(args.repo_ref)}
 """
     if controller:
         return text
-    return text + """
+    text += """
 export UV_CACHE_DIR=/tmp/uv-cache UV_PYTHON_INSTALL_DIR=/tmp/uv-python
 curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/tmp/uv-bin UV_NO_MODIFY_PATH=1 sh
 export PATH="/tmp/uv-bin:$PATH"
@@ -61,6 +61,9 @@ python -m pip check
 OUT="$WORK/output"
 mkdir -p "$OUT"
 """
+    if settings(args).get("extra_requirements"):
+        text += f"python -m pip install --no-cache-dir -r {q(settings(args)['extra_requirements'])}\npython -m pip check\n"
+    return text
 
 
 def script(args, stage):
@@ -75,6 +78,7 @@ def script(args, stage):
             f"exec python3 {q(spec['batch_script'])} orchestrate\n")
     text = bootstrap(args) + exports
     if stage == "smoke":
+        text += "".join(f"export {key}={q(value)}\n" for key, value in spec.get("smoke_test_environment", {}).items())
         return text + f"""
 finish() {{
   code=$?

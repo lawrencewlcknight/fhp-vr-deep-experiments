@@ -1,5 +1,30 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For **Experiment 5 (eight Ray traversal workers, unchanged central fitting)**,
+see [the synchronous collection guide](../experiments/fhp/exp5_vr_deep_ray8/README.md).
+It retains Experiment 3's three seeds, `n2-standard-16` VMs, 24 active hours and
+6/12/18/24-hour policies. The eight-thread central learner is unchanged; eight
+one-thread actors share the existing total traversal budget on each seed VM.
+With the environment below configured and the implementation committed/pushed:
+
+```bash
+export REPO_REF="$(git rev-parse HEAD)"
+export RUN_ID="vr5-smoke-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_exp5_vr_deep_ray8.sh smoke-only
+bash gcp/run_exp5_vr_deep_ray8.sh status
+
+# After smoke succeeds, choose a fresh namespace.
+export RUN_ID="vr5-ray8-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_exp5_vr_deep_ray8.sh run
+bash gcp/run_exp5_vr_deep_ray8.sh status
+```
+
+The full workflow includes a real eight-actor smoke/equivalence gate before
+launching the three training VMs. It installs `requirements-ray.txt` only for
+this experiment, needs 48 N2 vCPUs plus the controller, and performs no policy
+evaluation. Ray startup/merge/worker timings and whole-job resource diagnostics
+are retained alongside the existing training outputs.
+
 For **Experiment 4 (short computation-thread profiling on n2-standard-16)**,
 see [the controlled profiling guide](../experiments/fhp/exp4_vr_deep_thread_profile/README.md).
 It compares 1/2/4/8/16 threads sequentially, with three repeats, identical

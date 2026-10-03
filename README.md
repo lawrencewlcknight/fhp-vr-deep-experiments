@@ -53,6 +53,12 @@ states/minibatches and three timing repeats. It measures individual fits and
 trace-controlled whole iterations, with no poker-performance evaluation.
 See [the profiling protocol and cloud smoke/full-run instructions](experiments/fhp/exp4_vr_deep_thread_profile/README.md).
 
+**Experiment 5: eight Ray traversal workers** compares against Experiment 3
+on the same VMs, with the same three seeds, 24-hour budget and six-hour
+checkpoints. Only traversal collection is parallelized; central fitting keeps
+eight threads and unchanged learning settings. No performance evaluation is
+run. See [the Ray experiment and smoke/full-run guide](experiments/fhp/exp5_vr_deep_ray8/README.md).
+
 The original two-algorithm Leduc-to-FHP transfer experiment is retained under
 the `archieved_` prefix; it is not the active Experiment 1.
 

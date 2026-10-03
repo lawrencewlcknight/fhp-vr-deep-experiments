@@ -1,0 +1,3 @@
+-r requirements.txt
+# Match the Ray runtime already used by the FHP UCV-ESCHER experiments.
+ray==2.51.2
