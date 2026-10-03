@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 import shutil
 
-from experiments.fhp.exp1_leduc_config_transfer.run import main
+from experiments.fhp.archieved_exp1_leduc_config_transfer.run import main
 from fhp_vr_deep.io_utils import read_json
 from vr_deep_cfr.policy_snapshots import load_policy_snapshot_payload
 
@@ -27,7 +27,7 @@ def test_full_experiment_smoke_runs_both_variants_and_analysis(tmp_path):
         )
         == 0
     )
-    run_dirs = list(tmp_path.glob("exp1_fhp_vr_deep_leduc_config_transfer_*"))
+    run_dirs = list(tmp_path.glob("archieved_exp1_fhp_vr_deep_leduc_config_transfer_*"))
     assert len(run_dirs) == 1
     run_dir = run_dirs[0]
     status = read_json(run_dir / "run_status.json")

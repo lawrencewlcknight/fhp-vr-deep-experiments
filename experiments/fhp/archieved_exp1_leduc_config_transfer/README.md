@@ -1,6 +1,13 @@
-# Experiment 1: Leduc configuration transfer
+# Archived Experiment 1: Leduc configuration transfer
 
-Experiment 1 trains **VR-DeepDCFR+** and **VR-DeepPDCFR+** on the canonical FHP
+This study is retained as `archieved_exp1_leduc_config_transfer`, using the
+requested `archieved_` prefix. It is not the new active Experiment 1. Its
+training configuration is unchanged. Newly generated run directories and
+experiment names also use the prefix; existing saved outputs are not renamed.
+The historical numeric `experiment_id` remains `1` for compatibility with
+existing records; `experiment_name` distinguishes the archived study.
+
+Archived Experiment 1 trains **VR-DeepDCFR+** and **VR-DeepPDCFR+** on the canonical FHP
 game for paired seeds `0`, `1`, and `2`.
 
 ## Training contract
@@ -49,13 +56,13 @@ The default command runs all six 12-hour workers sequentially and then performs
 the paired evaluation:
 
 ```bash
-python -m experiments.fhp.exp1_leduc_config_transfer.run
+python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run
 ```
 
 Run only one algorithm or seed with:
 
 ```bash
-python -m experiments.fhp.exp1_leduc_config_transfer.run \
+python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
   --algorithms vr_deep_dcfr_plus \
   --seeds 0
 ```
@@ -67,7 +74,7 @@ head-to-head evaluation, aggregation, and plots with tiny settings. Its policy
 results are not scientifically meaningful.
 
 ```bash
-python -m experiments.fhp.exp1_leduc_config_transfer.run \
+python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
   --smoke \
   --seeds 0 \
   --head-to-head-deals 4 \
@@ -91,11 +98,11 @@ fitting, snapshotting, evaluation, installation, and VM variation add wall-time
 overhead, so the command uses a conservative 120-hour timeout:
 
 ```bash
-JOB_NAME="fhp-vr-deep-exp1-$(date -u +%Y%m%d-%H%M%S)"
+JOB_NAME="fhp-vr-deep-archieved-exp1-$(date -u +%Y%m%d-%H%M%S)"
 
 ./gcp/submit_batch_experiment.sh \
   "$JOB_NAME" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --output-root outputs/cloud/$JOB_NAME" \
   n2-standard-8 432000 8000 32000 100 pd-balanced
 ```
@@ -105,18 +112,18 @@ JOB_NAME="fhp-vr-deep-exp1-$(date -u +%Y%m%d-%H%M%S)"
 The two algorithms can be trained concurrently in separate 60-hour Batch jobs:
 
 ```bash
-JOB_DCFR="fhp-vr-deep-exp1-dcfr-$(date -u +%Y%m%d-%H%M%S)"
+JOB_DCFR="fhp-vr-deep-archieved-exp1-dcfr-$(date -u +%Y%m%d-%H%M%S)"
 ./gcp/submit_batch_experiment.sh \
   "$JOB_DCFR" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --algorithms vr_deep_dcfr_plus \
     --output-root outputs/cloud/$JOB_DCFR" \
   n2-standard-8 216000 8000 32000 100 pd-balanced
 
-JOB_PDCFR="fhp-vr-deep-exp1-pdcfr-$(date -u +%Y%m%d-%H%M%S)"
+JOB_PDCFR="fhp-vr-deep-archieved-exp1-pdcfr-$(date -u +%Y%m%d-%H%M%S)"
 ./gcp/submit_batch_experiment.sh \
   "$JOB_PDCFR" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --algorithms vr_deep_pdcfr_plus \
     --output-root outputs/cloud/$JOB_PDCFR" \
   n2-standard-8 216000 8000 32000 100 pd-balanced
@@ -126,10 +133,10 @@ After downloading both output trees, combine them and perform the head-to-head
 evaluation locally:
 
 ```bash
-python -m experiments.fhp.exp1_leduc_config_transfer.run \
+python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
   --aggregate-run-dir cloud_outputs/DCFR_RUN \
   --aggregate-run-dir cloud_outputs/PDCFR_RUN \
-  --output-root outputs/exp1_aggregated
+  --output-root outputs/archieved_exp1_aggregated
 ```
 
 `--aggregate-run-dir` discovers relocatable `worker_runs/*/result.json` files,
@@ -138,11 +145,11 @@ rejects duplicate algorithm/seed pairs, and regenerates all tables and plots.
 ## GCP smoke test
 
 ```bash
-JOB_NAME="fhp-vr-deep-exp1-smoke-$(date -u +%Y%m%d-%H%M%S)"
+JOB_NAME="fhp-vr-deep-archieved-exp1-smoke-$(date -u +%Y%m%d-%H%M%S)"
 
 ./gcp/submit_batch_experiment.sh \
   "$JOB_NAME" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --smoke --seeds 0 --head-to-head-deals 4 \
     --output-root outputs/cloud/$JOB_NAME" \
   n2-standard-4 21600 4000 16000 100 pd-balanced

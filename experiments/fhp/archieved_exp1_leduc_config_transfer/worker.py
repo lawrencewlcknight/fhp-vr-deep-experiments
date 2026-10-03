@@ -1,4 +1,4 @@
-"""Single-algorithm, single-seed training worker for FHP Experiment 1."""
+"""Single-algorithm, single-seed training worker for FHP Archived Experiment 1."""
 
 from __future__ import annotations
 
@@ -108,7 +108,7 @@ def run_training_worker(payload: Mapping[str, object]) -> dict[str, object]:
     validate_config(config, production=not is_smoke)
     checkpoint_seconds = tuple(float(value) for value in payload["checkpoint_seconds"])
     if len(checkpoint_seconds) != 2 or checkpoint_seconds[0] >= checkpoint_seconds[1]:
-        raise ValueError("Experiment 1 requires exactly two increasing time checkpoints")
+        raise ValueError("Archived Experiment 1 requires exactly two increasing time checkpoints")
     worker_dir = Path(str(payload["worker_dir"]))
     worker_dir.mkdir(parents=True, exist_ok=False)
     checkpoints_dir = worker_dir / "checkpoints"

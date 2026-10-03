@@ -1,5 +1,12 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For the **new Experiment 1 (VR-DeepPDCFR+, three seeds, 24 active hours)**, use
+[`run_exp1_vr_deep_pdcfr_24h.sh` and its experiment guide](../experiments/fhp/exp1_vr_deep_pdcfr_24h/README.md).
+That guide includes the additional controller IAM permissions and the
+smoke -> three parallel training VMs -> aggregation workflow. The one-time
+project/bucket/account setup below remains applicable. The later generic
+submission examples below refer to the **archived** two-algorithm study.
+
 This guide gives the complete command-line workflow for running this repository
 on Google Cloud Batch. It covers:
 
@@ -7,7 +14,7 @@ on Google Cloud Batch. It covers:
 2. creating a Cloud Storage bucket and Batch service account;
 3. checking the repository and submission helper;
 4. running and verifying a smoke test;
-5. running Experiment 1 as one job or two concurrent algorithm jobs;
+5. running Archived Experiment 1 as one job or two concurrent algorithm jobs;
 6. monitoring, diagnosing, downloading, and aggregating results;
 7. choosing resources and cleaning up.
 
@@ -223,7 +230,7 @@ BOOT_DISK_SIZE_GB
 BOOT_DISK_TYPE
 ```
 
-Its Experiment 1 defaults are:
+Its Archived Experiment 1 defaults are:
 
 ```text
 n2-standard-8 432000 8000 32000 100 pd-balanced
@@ -241,11 +248,11 @@ snapshot save/reload, sampled seat-swapped play, aggregation, plots, resource
 monitoring, and Cloud Storage upload. Its policy results are meaningless.
 
 ```bash
-JOB_NAME="fhp-vr-deep-exp1-smoke-$(date -u +%Y%m%d-%H%M%S)"
+JOB_NAME="fhp-vr-deep-archieved-exp1-smoke-$(date -u +%Y%m%d-%H%M%S)"
 
 ./gcp/submit_batch_experiment.sh \
   "$JOB_NAME" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --smoke \
     --seeds 0 \
     --head-to-head-deals 4 \
@@ -350,7 +357,7 @@ A successful smoke output contains at least:
 
 ---
 
-## 10. Run the full Experiment 1 as one job
+## 10. Run the full Archived Experiment 1 as one job
 
 The default command trains both algorithms for seeds `0`, `1`, and `2`. Each of
 the six workers runs to the 12-hour effective-training checkpoint, giving 72
@@ -359,11 +366,11 @@ installation, evaluation, and VM variation add wall-clock overhead. Use the
 120-hour safety cap:
 
 ```bash
-JOB_NAME="fhp-vr-deep-exp1-$(date -u +%Y%m%d-%H%M%S)"
+JOB_NAME="fhp-vr-deep-archieved-exp1-$(date -u +%Y%m%d-%H%M%S)"
 
 ./gcp/submit_batch_experiment.sh \
   "$JOB_NAME" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --output-root outputs/cloud/$JOB_NAME" \
   n2-standard-8 \
   432000 \
@@ -388,11 +395,11 @@ concurrently. Each job trains three sequential 12-hour seeds and uses a
 Submit VR-DeepDCFR+:
 
 ```bash
-JOB_DCFR="fhp-vr-deep-exp1-dcfr-$(date -u +%Y%m%d-%H%M%S)"
+JOB_DCFR="fhp-vr-deep-archieved-exp1-dcfr-$(date -u +%Y%m%d-%H%M%S)"
 
 ./gcp/submit_batch_experiment.sh \
   "$JOB_DCFR" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --algorithms vr_deep_dcfr_plus \
     --output-root outputs/cloud/$JOB_DCFR" \
   n2-standard-8 \
@@ -406,11 +413,11 @@ JOB_DCFR="fhp-vr-deep-exp1-dcfr-$(date -u +%Y%m%d-%H%M%S)"
 Submit VR-DeepPDCFR+:
 
 ```bash
-JOB_PDCFR="fhp-vr-deep-exp1-pdcfr-$(date -u +%Y%m%d-%H%M%S)"
+JOB_PDCFR="fhp-vr-deep-archieved-exp1-pdcfr-$(date -u +%Y%m%d-%H%M%S)"
 
 ./gcp/submit_batch_experiment.sh \
   "$JOB_PDCFR" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --algorithms vr_deep_pdcfr_plus \
     --output-root outputs/cloud/$JOB_PDCFR" \
   n2-standard-8 \
@@ -461,17 +468,17 @@ find "cloud_outputs/$JOB_PDCFR" -path '*/worker_runs/*/result.json' -print
 Set the two directories based on that output, for example:
 
 ```bash
-export DCFR_RUN_DIR="cloud_outputs/$JOB_DCFR/outputs/cloud/$JOB_DCFR/exp1_RUN_DIR"
-export PDCFR_RUN_DIR="cloud_outputs/$JOB_PDCFR/outputs/cloud/$JOB_PDCFR/exp1_RUN_DIR"
+export DCFR_RUN_DIR="cloud_outputs/$JOB_DCFR/outputs/cloud/$JOB_DCFR/archieved_exp1_RUN_DIR"
+export PDCFR_RUN_DIR="cloud_outputs/$JOB_PDCFR/outputs/cloud/$JOB_PDCFR/archieved_exp1_RUN_DIR"
 ```
 
 Aggregate and run the default 100,000-deal-pair evaluations:
 
 ```bash
-python -m experiments.fhp.exp1_leduc_config_transfer.run \
+python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
   --aggregate-run-dir "$DCFR_RUN_DIR" \
   --aggregate-run-dir "$PDCFR_RUN_DIR" \
-  --output-root outputs/exp1_aggregated
+  --output-root outputs/archieved_exp1_aggregated
 ```
 
 The aggregator:
@@ -494,11 +501,11 @@ The runner accepts algorithm and seed subsets. If only one worker is missing,
 submit just that pair rather than repeating completed work:
 
 ```bash
-JOB_RECOVERY="fhp-vr-deep-exp1-recovery-$(date -u +%Y%m%d-%H%M%S)"
+JOB_RECOVERY="fhp-vr-deep-archieved-exp1-recovery-$(date -u +%Y%m%d-%H%M%S)"
 
 ./gcp/submit_batch_experiment.sh \
   "$JOB_RECOVERY" \
-  "python -m experiments.fhp.exp1_leduc_config_transfer.run \
+  "python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run \
     --algorithms vr_deep_pdcfr_plus \
     --seeds 2 \
     --output-root outputs/cloud/$JOB_RECOVERY" \
@@ -535,7 +542,7 @@ Useful N2 combinations are:
 | `n2-standard-4` | `4000` | `16000` | 4 vCPUs, 16 GiB |
 | `n2-standard-8` | `8000` | `32000` | 8 vCPUs, 32 GiB |
 
-The task request must fit the selected machine type. Experiment 1's approved
+The task request must fit the selected machine type. Archived Experiment 1's approved
 production reference is `n2-standard-8` with a 100 GiB `pd-balanced` boot disk.
 The million-entry replay buffers make the smaller smoke VM unsuitable as an
 untested production default.

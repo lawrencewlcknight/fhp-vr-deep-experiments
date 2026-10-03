@@ -1,5 +1,17 @@
 # FHP VR-Deep Experiments
 
+## Shared policy evaluation
+
+FHP snapshots are evaluated through the sibling `fhp-evaluation-suite`, not
+through an algorithm-specific copy. The adapter is
+`fhp_vr_deep.evaluation_adapter`. Install it from this directory with
+`python -m pip install -e ../../fhp-evaluation-suite`; then run
+`fhp-evaluate benchmark SNAPSHOT --deals 10000 --seed 2026` or
+`fhp-evaluate lbr SNAPSHOT --deals 1000 --seed 2026`.
+
+The benchmark uses both-seat duplicate deals and corrected LooseAggressive
+bands `(-300,-100)`. LBR is reported as a lower bound, not exact exploitability.
+
 This is a clean, standalone repository for VR-Deep experiments on two-player
 flop hold'em poker (FHP). Its layout and result contracts follow the Leduc
 `escher-architecture` repository, while the game definition is identical to the
@@ -12,17 +24,25 @@ The repository supports both released VR-Deep variants:
 
 ## Current status
 
-Experiment 1 implements the approved direct transfer of the Leduc VR-Deep
-training configuration to FHP for both variants and paired seeds. Run the full
-experiment with:
+**Experiment 1: selected VR-DeepPDCFR+ on FHP** trains seeds 0, 1 and 2 for
+24 active hours each, on three separate `n2-standard-8` VMs. It retains playable
+policies at 6, 12, 18 and 24 hours, without large full training-state archives.
+A cloud smoke/equivalence gate precedes training and strict aggregation follows.
+See [the experiment specification and launch instructions](experiments/fhp/exp1_vr_deep_pdcfr_24h/README.md).
+
+The original two-algorithm Leduc-to-FHP transfer experiment is retained under
+the `archieved_` prefix; it is not the active Experiment 1.
+
+Archived Experiment 1 retains the approved transfer configuration for both
+VR-Deep variants and paired seeds. To explicitly rerun the archived study:
 
 ```bash
-python -m experiments.fhp.exp1_leduc_config_transfer.run
+python -m experiments.fhp.archieved_exp1_leduc_config_transfer.run
 ```
 
 The full training, evaluation, smoke-test, GCP Batch, split-job, recovery, and
 output contracts are documented in
-`experiments/fhp/exp1_leduc_config_transfer/README.md`.
+`experiments/fhp/archieved_exp1_leduc_config_transfer/README.md`.
 
 For one-time Google Cloud setup and the complete step-by-step Batch workflow,
 see `docs/GCP_BATCH_EXPERIMENTS.md`.

@@ -455,9 +455,14 @@ class DeepCumuAdv:
         if player == -4:
             return s.returns()[traverser] / self.max_utility
         legal_actions = s.legal_actions()
-        policy = self.regret_trainers[player].get_policy(s, self.num_iteration)
+        legal_mask = s.legal_actions_mask()
+        infostate = self.get_infostate_tensor(s)
+        policy = self.regret_trainers[player].get_policy(
+            s, self.num_iteration, infostate=infostate,
+            legal_mask=legal_mask, legal_actions=legal_actions,
+        )
         num_actions = s.num_distinct_actions()
-        uniform_policy = np.array(s.legal_actions_mask()) / len(s.legal_actions())
+        uniform_policy = np.array(legal_mask) / len(legal_actions)
         sample_policy = (
             uniform_policy * self.epsilon + policy * (1 - self.epsilon)
             if player == traverser
@@ -470,15 +475,18 @@ class DeepCumuAdv:
             policy[action].item(),
         )
         ns = self.skip_chance_state(s.child(action))
+        history = self.get_history_tensor(s) if self.use_baseline else None
         if player == 1 - traverser:
             self.ave_policy_trainer.add_data(
-                self.get_infostate_tensor(s),
+                infostate,
                 policy,
-                s.legal_actions_mask(),
+                legal_mask,
                 self.num_iteration,
             )
             if self.use_baseline:
-                q_values = self.q_value_trainer.get_baseline(s, traverser)
+                q_values = self.q_value_trainer.get_baseline(
+                    s, traverser, history=history, legal_mask=legal_mask
+                )
             else:
                 q_values = np.zeros_like(policy)
             action_value = self.dfs(
@@ -493,7 +501,9 @@ class DeepCumuAdv:
             value = np.dot(q_values, policy)
         else:
             if self.use_baseline:
-                q_values = self.q_value_trainer.get_baseline(s, traverser)
+                q_values = self.q_value_trainer.get_baseline(
+                    s, traverser, history=history, legal_mask=legal_mask
+                )
             else:
                 q_values = np.zeros_like(policy)
             action_value = self.dfs(
@@ -512,21 +522,29 @@ class DeepCumuAdv:
             cf_regrets[legal_actions] = -value * im_weight
             cf_regrets[legal_actions] += q_values[legal_actions] * im_weight
             self.regret_trainers[player].add_data(
-                self.get_infostate_tensor(s),
+                infostate,
                 cf_regrets,
-                s.legal_actions_mask(),
+                legal_mask,
                 self.num_iteration,
             )
 
         if self.use_baseline:
+            terminal = ns.is_terminal()
+            next_history = self.get_history_tensor(ns)
+            next_player = ns.current_player()
+            # The history encoding is the concatenation of the two players'
+            # information tensors; do not expose the other half to the policy.
+            next_infostate = (
+                None if terminal else next_history.reshape(2, self.infostate_size)[next_player]
+            )
             self.q_value_trainer.add_data(
-                self.get_history_tensor(s),
+                history,
                 action,
-                self.get_history_tensor(ns),
-                self.get_infostate_tensor(ns) if not ns.is_terminal() else None,
-                ns.legal_actions_mask() if not ns.is_terminal() else None,
-                ns.current_player(),
-                int(ns.is_terminal()),
+                next_history,
+                next_infostate,
+                ns.legal_actions_mask() if not terminal else None,
+                next_player,
+                int(terminal),
                 ns.returns()[0] / self.max_utility,
             )
         return value
@@ -647,12 +665,11 @@ class RegretTrainer(Trainer):
         self.target_model.load_state_dict(self.model.state_dict())
 
     def forward(self, model, x, mask):
-        with torch.device(self.device):
-            x = torch.as_tensor(x, dtype=torch.float32)
-            mask = torch.as_tensor(mask, dtype=torch.float32)
-            with torch.no_grad():
-                legal_regrets = self.predict(model, x, mask)
-                return legal_regrets.cpu().numpy()
+        x = torch.as_tensor(x, dtype=torch.float32, device=self.device)
+        mask = torch.as_tensor(mask, dtype=torch.float32, device=self.device)
+        with torch.no_grad():
+            legal_regrets = self.predict(model, x, mask)
+            return legal_regrets.cpu().numpy()
 
     def predict(self, model, x, mask):
         legal_regrets = model(x) * mask
@@ -685,9 +702,15 @@ class RegretTrainer(Trainer):
         loss = self.loss_fn(outputs, regrets)
         return loss
 
-    def get_policy(self, s: SpielState, T: int) -> np.ndarray:
-        regrets = self.get_regrets(s)
-        legal_actions = s.legal_actions()
+    def get_policy(self, s: SpielState, T: int, *, infostate=None,
+                   legal_mask=None, legal_actions=None) -> np.ndarray:
+        if infostate is None:
+            infostate = self.get_infostate_tensor(s)
+        if legal_mask is None:
+            legal_mask = s.legal_actions_mask()
+        if legal_actions is None:
+            legal_actions = s.legal_actions()
+        regrets = self.forward(self.model, infostate, legal_mask)
         return self.regret_matching(regrets, legal_actions)
 
     def get_regrets(self, s: SpielState) -> np.ndarray:
@@ -740,12 +763,11 @@ class AvePolicyTrainer(Trainer):
         self.gamma = gamma
 
     def forward(self, x, mask):
-        with torch.device(self.device):
-            x = torch.as_tensor(x, dtype=torch.float32)
-            mask = torch.as_tensor(mask, dtype=torch.float32)
-            with torch.no_grad():
-                policy = self.predict(x, mask)
-                return policy.cpu().numpy()
+        x = torch.as_tensor(x, dtype=torch.float32, device=self.device)
+        mask = torch.as_tensor(mask, dtype=torch.float32, device=self.device)
+        with torch.no_grad():
+            policy = self.predict(x, mask)
+            return policy.cpu().numpy()
 
     def predict(self, x, mask):
         logits = self.model(x)
@@ -797,14 +819,16 @@ class ReservoirBuffer:
             self.cur_id = 0
             return
 
-        self.infostate_buf = np.ones(
-            [self.buffer_size, self.infostate_size], dtype=float
+        # Fitting already consumes float32. Round on insertion, not on every
+        # sample. Only populated rows are ever sampled, so no fill is needed.
+        self.infostate_buf = np.empty(
+            [self.buffer_size, self.infostate_size], dtype=np.float32
         )
-        self.q_value_buf = np.ones([self.buffer_size, self.action_size], dtype=float)
-        self.q_value_mask_buf = np.ones(
-            [self.buffer_size, self.action_size], dtype=float
+        self.q_value_buf = np.empty([self.buffer_size, self.action_size], dtype=np.float32)
+        self.q_value_mask_buf = np.empty(
+            [self.buffer_size, self.action_size], dtype=np.float32
         )
-        self.iteration_buf = np.ones([self.buffer_size, 1], dtype=float)
+        self.iteration_buf = np.empty([self.buffer_size, 1], dtype=np.float32)
         self.cur_id = 0
 
     def add(self, infostate, q_value, q_value_mask, iteration):
@@ -822,14 +846,22 @@ class ReservoirBuffer:
         self.q_value_mask_buf[idx] = q_value_mask
         self.iteration_buf[idx] = iteration
 
-    def sample(self, num_samples=-1):
+    def sample_indices(self, num_samples=-1):
         self.data_length = min(self.cur_id, self.buffer_size)
         if num_samples > self.data_length:
             num_samples = -1
         if num_samples == -1:
-            idxs = list(range(self.data_length))
+            return slice(0, self.data_length)
         else:
-            idxs = random.sample(range(self.data_length), num_samples)
+            # Keep Python's exact without-replacement sampler and RNG stream.
+            return np.asarray(random.sample(range(self.data_length), num_samples), dtype=np.intp)
+
+    def sample(self, num_samples=-1, *, return_indices=False):
+        idxs = self.sample_indices(num_samples)
+        data_tensor = self.gather(idxs)
+        return (data_tensor, idxs) if return_indices else data_tensor
+
+    def gather(self, idxs):
         data = (
             self.infostate_buf[idxs],
             self.q_value_buf[idxs],
@@ -956,6 +988,7 @@ class QValueTrainer(Trainer):
             self.state_size,
             self.output_size,
             device=self.device,
+            derive_next_state=True,
         )
 
     def init_model(self):
@@ -964,12 +997,14 @@ class QValueTrainer(Trainer):
         )
         return model
 
-    def get_baseline(self, s: SpielState, player: int) -> np.ndarray:
-        history_tensor = self.get_history_tensor(s)
+    def get_baseline(self, s: SpielState, player: int, *, history=None,
+                     legal_mask=None) -> np.ndarray:
+        history_tensor = self.get_history_tensor(s) if history is None else history
+        if legal_mask is None:
+            legal_mask = s.legal_actions_mask()
         coef = 1 if player == 0 else -1
         baseline = self.forward(history_tensor) * coef
-        baseline = baseline * np.array(s.legal_actions_mask(), dtype=float)
-        # baseline =  np.zeros(s.num_distinct_actions(), dtype=float)
+        baseline = baseline * np.array(legal_mask, dtype=float)
         return baseline
 
     def add_data(
@@ -1096,36 +1131,46 @@ class QValueTrainer(Trainer):
         return best_loss
 
     def forward(self, x):
-        with torch.device(self.device):
-            x = torch.as_tensor(x, dtype=torch.float32)
-            with torch.no_grad():
-                return self.model(x).cpu().numpy()
+        x = torch.as_tensor(x, dtype=torch.float32, device=self.device)
+        with torch.no_grad():
+            return self.model(x).cpu().numpy()
 
 
 class CircularBuffer:
     def __init__(
-        self, buffer_size, history_size, state_size, action_size, device="cpu"
+        self, buffer_size, history_size, state_size, action_size, device="cpu", *,
+        derive_next_state=False,
     ):
         self.buffer_size = buffer_size
         self.history_size = history_size
         self.action_size = action_size
         self.state_size = state_size
         self.device = device
+        # Opt in only for the two-player concatenated-history encoding.
+        self.derive_next_state = derive_next_state
+        if derive_next_state and history_size != 2 * state_size:
+            raise ValueError("Derived next states require two concatenated information tensors")
         self.reset()
 
     def reset(self):
-        self.history_buf = np.ones([self.buffer_size, self.history_size], dtype=float)
-        self.action_buf = np.ones([self.buffer_size], dtype=int)
-        self.next_history_buf = np.ones(
-            [self.buffer_size, self.history_size], dtype=float
+        if hasattr(self, "cur_id"):
+            self.cur_id = self.size = 0
+            return
+        self.history_buf = np.empty([self.buffer_size, self.history_size], dtype=np.float32)
+        self.action_buf = np.empty([self.buffer_size], dtype=np.int64)
+        self.next_history_buf = np.empty(
+            [self.buffer_size, self.history_size], dtype=np.float32
         )
-        self.next_state_buf = np.ones([self.buffer_size, self.state_size], dtype=float)
-        self.next_legal_actions_mask_buf = np.ones(
-            [self.buffer_size, self.action_size], dtype=int
+        self.next_state_buf = (
+            None if self.derive_next_state else
+            np.empty([self.buffer_size, self.state_size], dtype=np.float32)
         )
-        self.next_player_buf = np.ones([self.buffer_size], dtype=int)
-        self.done_buf = np.ones([self.buffer_size], dtype=int)
-        self.reward_buf = np.ones([self.buffer_size], dtype=float)
+        self.next_legal_actions_mask_buf = np.empty(
+            [self.buffer_size, self.action_size], dtype=np.int64
+        )
+        self.next_player_buf = np.empty([self.buffer_size], dtype=np.int64)
+        self.done_buf = np.empty([self.buffer_size], dtype=np.int64)
+        self.reward_buf = np.empty([self.buffer_size], dtype=np.float32)
         self.cur_id = 0
         self.size = 0
 
@@ -1169,22 +1214,41 @@ class CircularBuffer:
         self.history_buf[idx] = history
         self.action_buf[idx] = action
         self.next_history_buf[idx] = next_history
-        self.next_state_buf[idx] = next_state
+        if not self.derive_next_state:
+            self.next_state_buf[idx] = next_state
         self.next_legal_actions_mask_buf[idx] = next_legal_actions_mask
         self.next_player_buf[idx] = next_player
         self.done_buf[idx] = done
         self.reward_buf[idx] = reward
 
-    def sample(self, num_samples=-1):
+    def sample_indices(self, num_samples=-1):
         data_length = len(self)
         if num_samples == -1:
-            idxs = list(range(data_length))
+            return slice(0, data_length)
         else:
-            idxs = random.sample(range(data_length), num_samples)
+            return np.asarray(random.sample(range(data_length), num_samples), dtype=np.intp)
+
+    def next_states(self, idxs, next_histories=None):
+        if not self.derive_next_state:
+            return self.next_state_buf[idxs]
+        if next_histories is None:
+            next_histories = self.next_history_buf[idxs]
+        players = self.next_player_buf[idxs]
+        states = next_histories.reshape(-1, 2, self.state_size)[np.arange(len(players)), players]
+        states[self.done_buf[idxs].astype(bool)] = 0
+        return states
+
+    def sample(self, num_samples=-1, *, return_indices=False, include_next_state=True):
+        idxs = self.sample_indices(num_samples)
+        data_tensor = self.gather(idxs, include_next_state=include_next_state)
+        return (data_tensor, idxs) if return_indices else data_tensor
+
+    def gather(self, idxs, *, include_next_state=True):
+        next_histories = self.next_history_buf[idxs]
         float_data = (
             self.history_buf[idxs],
-            self.next_history_buf[idxs],
-            self.next_state_buf[idxs],
+            next_histories,
+            self.next_states(idxs, next_histories) if include_next_state else None,
             self.reward_buf[idxs],
         )
         int_data = (
@@ -1200,6 +1264,8 @@ class CircularBuffer:
         return data_tensor
 
     def numpy_to_float_tensor(self, data):
+        if data is None:
+            return None
         return torch.as_tensor(data, dtype=torch.float32, device=self.device)
 
     def numpy_to_int_tensor(self, data):

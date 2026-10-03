@@ -7,8 +7,8 @@ set -euo pipefail
 #   ./gcp/read_batch_task_logs.sh JOB_NAME [TEXT_FILTER ...]
 #
 # Examples:
-#   ./gcp/read_batch_task_logs.sh fhp-vr-deep-exp1-20260830-120000
-#   ./gcp/read_batch_task_logs.sh fhp-vr-deep-exp1-20260830-120000 ERROR Traceback Killed
+#   ./gcp/read_batch_task_logs.sh fhp-vr-deep-archieved-exp1-20260830-120000
+#   ./gcp/read_batch_task_logs.sh fhp-vr-deep-archieved-exp1-20260830-120000 ERROR Traceback Killed
 #
 # The task-log query is always scoped by labels.job_uid before text filters are
 # appended, so generic experiment terms cannot pull in neighbouring job logs.
@@ -84,7 +84,7 @@ for line_number, line in enumerate(log_path.read_text(encoding="utf-8", errors="
             continue
         if target_job.startswith(f"{candidate}-"):
             # Correct-job logs often contain output prefixes such as
-            # outputs/cloud/fhp-vr-deep-exp1 while the Batch job name has a
+            # outputs/cloud/fhp-vr-deep-archieved-exp1 while the Batch job name has a
             # timestamp suffix. Treat those as provenance, not contamination.
             continue
         contaminated.append((line_number, candidate, line))

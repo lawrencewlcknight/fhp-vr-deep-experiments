@@ -1,12 +1,14 @@
 from pathlib import Path
 
-from experiments.fhp.exp1_leduc_config_transfer.config import (
+from experiments.fhp.archieved_exp1_leduc_config_transfer.config import (
     ALGORITHMS,
     APPROVAL_STATUS,
     APPROVED_CONFIG,
     BATCH_TIMEOUT_SECONDS,
     CHECKPOINT_TRAINING_SECONDS,
     DEFAULT_SEEDS,
+    EXPERIMENT_ID,
+    EXPERIMENT_NAME,
     LEDUC_SOURCE_CONFIG,
     PROPOSED_CONFIG,
     PROPOSED_PROTOCOL,
@@ -14,6 +16,14 @@ from experiments.fhp.exp1_leduc_config_transfer.config import (
     validate_config,
     validate_proposal,
 )
+
+
+def test_archived_namespace_preserves_historical_id_and_frees_active_package():
+    root = Path(__file__).resolve().parents[1]
+    assert EXPERIMENT_ID == 1
+    assert EXPERIMENT_NAME == "archieved_exp1_fhp_vr_deep_leduc_config_transfer"
+    assert (root / "experiments/fhp/archieved_exp1_leduc_config_transfer/run.py").is_file()
+    assert not (root / "experiments/fhp/exp1_leduc_config_transfer/run.py").exists()
 
 
 def test_only_training_config_change_is_the_game():

@@ -19,3 +19,9 @@ the paper's immediate-regret reinitialisation independent of cumulative-regret
 reinitialisation (the released control flow otherwise never applies the former
 when the latter is false) and tracks circular-buffer occupancy separately from
 the wrapped write index.
+
+The subsequent implementation-efficiency changes use compact replay storage,
+reuse traversal inputs, and cache only fit-local frozen predictions. They retain
+the update equations, sampling RNG sequence, optimiser schedule and target-critic
+refreshes. See `docs/IMPLEMENTATION_EFFICIENCY.md` for the equivalence audit,
+memory accounting and limitations.

@@ -1,4 +1,4 @@
-"""Run both approved VR-Deep variants on canonical FHP and analyse the results."""
+"""Rerun archived Experiment 1: the Leduc-to-FHP VR-Deep transfer study."""
 
 from __future__ import annotations
 
@@ -81,7 +81,7 @@ def _run_subprocess(run_dir: Path, payload: dict[str, object]) -> dict[str, obje
     command = [
         sys.executable,
         "-m",
-        "experiments.fhp.exp1_leduc_config_transfer.run",
+        "experiments.fhp.archieved_exp1_leduc_config_transfer.run",
         "--worker-input-json",
         str(input_path),
         "--worker-output-json",
@@ -138,7 +138,7 @@ def _parser() -> argparse.ArgumentParser:
         "--aggregate-run-dir",
         type=Path,
         action="append",
-        help="aggregate one or more existing Experiment 1 run directories",
+        help="aggregate one or more existing Archived Experiment 1 run directories",
     )
     parser.add_argument("--worker-input-json", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--worker-output-json", type=Path, help=argparse.SUPPRESS)
@@ -158,7 +158,7 @@ def main(argv=None) -> int:
     if args.aggregate_run_dir:
         return _aggregate_existing(args)
     if APPROVAL_STATUS != "approved":
-        raise RuntimeError("Experiment 1 configuration has not been approved")
+        raise RuntimeError("Archived Experiment 1 configuration has not been approved")
 
     seeds = _parse_seeds(args.seeds)
     algorithms = _parse_algorithms(args.algorithms)

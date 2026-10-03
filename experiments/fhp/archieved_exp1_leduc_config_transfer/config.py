@@ -1,4 +1,4 @@
-"""Approved configuration for FHP Experiment 1."""
+"""Approved configuration for FHP Archived Experiment 1."""
 
 from __future__ import annotations
 
@@ -9,8 +9,9 @@ from typing import Mapping
 
 
 APPROVAL_STATUS = "approved"
+# Preserve the historical numeric ID; the archived name is a separate namespace.
 EXPERIMENT_ID = 1
-EXPERIMENT_NAME = "exp1_fhp_vr_deep_leduc_config_transfer"
+EXPERIMENT_NAME = "archieved_exp1_fhp_vr_deep_leduc_config_transfer"
 DEFAULT_SEEDS = [0, 1, 2]
 CHECKPOINT_TRAINING_SECONDS = (6 * 60 * 60, 12 * 60 * 60)
 HEAD_TO_HEAD_DEALS_PER_PAIR = 100_000
@@ -119,9 +120,9 @@ def validate_proposal() -> None:
     if changed != {"game_name"}:
         raise ValueError(f"Unexpected Leduc configuration changes: {sorted(changed)}")
     if PROPOSED_CONFIG["game_name"] != "FHP":
-        raise ValueError("Experiment 1 must use the canonical FHP loader")
+        raise ValueError("Archived Experiment 1 must use the canonical FHP loader")
     if set(ALGORITHMS) != {"vr_deep_dcfr_plus", "vr_deep_pdcfr_plus"}:
-        raise ValueError("Experiment 1 must run both VR-Deep variants")
+        raise ValueError("Archived Experiment 1 must run both VR-Deep variants")
     checkpoints = PROPOSED_PROTOCOL["training_time_checkpoint_hours"]
     if checkpoints != sorted(set(checkpoints)) or any(value <= 0 for value in checkpoints):
         raise ValueError("Checkpoint hours must be unique, positive, and increasing")
@@ -131,7 +132,7 @@ def validate_config(config: Mapping[str, object], *, production: bool) -> None:
     """Validate the game/solver contract and optionally require exact production settings."""
     validate_proposal()
     if config.get("game_name") != "FHP":
-        raise ValueError("Experiment 1 must use the canonical FHP loader")
+        raise ValueError("Archived Experiment 1 must use the canonical FHP loader")
     if not bool(config.get("use_baseline")):
         raise ValueError("Both approved VR-Deep variants require the history-value baseline")
     if not bool(config.get("preserve_evaluation_rng")):
