@@ -55,11 +55,11 @@ def verify_worker(worker_dir, *, smoke=False, experiment=default_experiment):
             raise ValueError("Worker has wrong torch_threads")
     if (summary["seed"] != manifest["seed"] or success["seed"] != manifest["seed"]
             or summary["is_smoke"] != smoke or summary["algorithm_id"] != ALGORITHM_ID
-            or summary["checkpoint_count"] != 4
+            or summary["checkpoint_count"] != len(schedule(smoke))
             or summary["experiment_name"] != EXPERIMENT_NAME
             or success["experiment_name"] != EXPERIMENT_NAME
             or success["training_config_sha256"] != expected["training_config_sha256"]
-            or summary["stop_reason"] != "training_time_budget" or len(snapshots) != 4):
+            or summary["stop_reason"] != "training_time_budget" or len(snapshots) != len(schedule(smoke))):
         raise ValueError("Worker identity or completion state is inconsistent")
     previous_nodes = previous_time = 0
     for index, (row, target) in enumerate(zip(snapshots, schedule(smoke))):

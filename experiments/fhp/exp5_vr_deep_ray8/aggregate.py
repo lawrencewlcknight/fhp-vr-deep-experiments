@@ -7,9 +7,9 @@ from fhp_vr_deep.io_utils import read_json
 from . import config
 
 
-def verify_worker(worker_dir, *, smoke=False):
-    manifest, summary, rows = baseline.verify_worker(worker_dir, smoke=smoke, experiment=config)
-    expected = config.contract(smoke)
+def verify_worker(worker_dir, *, smoke=False, experiment=config):
+    manifest, summary, rows = baseline.verify_worker(worker_dir, smoke=smoke, experiment=experiment)
+    expected = experiment.contract(smoke)
     for key in ("reference_vm", "baseline_reference_vm", "baseline_commit", "single_intended_change",
                 "parallel_traversal_workers", "traversal_worker_threads", "learner_threads", "central_fitting",
                 "traversal_execution", "ray_version", "ray_object_store_bytes", "traversal_rng", "merge_order",

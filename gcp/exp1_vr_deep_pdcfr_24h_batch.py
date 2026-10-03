@@ -47,12 +47,20 @@ git checkout --detach {q(args.repo_ref)}
 """
     if controller:
         return text
-    text += """
+    python_version = "3.11"
+    runtime_manifest = settings(args).get("runtime_manifest")
+    if runtime_manifest:
+        reader = ("import json,re,sys; v=json.load(open(sys.argv[1]))['runtime']['python']; "
+                  "assert re.fullmatch(r'3[.]11[.][0-9]+',v), 'Expected source Python 3.11 patch version'; print(v)")
+        text += (f"gcloud storage cp {q(args.bucket + '/' + runtime_manifest)} \"$WORK/source-runtime.json\"\n"
+                 f"FHP_STATE_PYTHON=$(python3 -c {q(reader)} \"$WORK/source-runtime.json\")\n")
+        python_version = '"$FHP_STATE_PYTHON"'
+    text += f"""
 export UV_CACHE_DIR=/tmp/uv-cache UV_PYTHON_INSTALL_DIR=/tmp/uv-python
 curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/tmp/uv-bin UV_NO_MODIFY_PATH=1 sh
 export PATH="/tmp/uv-bin:$PATH"
-uv python install 3.11
-uv venv --python 3.11 --seed /tmp/fhp-vr-exp1-venv
+uv python install {python_version}
+uv venv --python {python_version} --seed /tmp/fhp-vr-exp1-venv
 source /tmp/fhp-vr-exp1-venv/bin/activate
 python -m pip install --upgrade pip setuptools wheel
 python -m pip install --no-cache-dir --no-build-isolation -r requirements.txt
@@ -72,6 +80,7 @@ def script(args, stage):
     remote = f"{args.bucket}/{args.run_id}"
     env = dict(PROJECT_ID=args.project, REGION=args.region, BUCKET=args.bucket,
                SA_EMAIL=args.service_account, REPO_REF=args.repo_ref, RUN_ID=args.run_id)
+    env.update(spec.get("extra_environment", {}))
     exports = "\n".join(f"export {key}={q(value)}" for key, value in env.items()) + "\n"
     if stage == "controller":
         return bootstrap(args, controller=True) + exports + (
@@ -117,19 +126,20 @@ finish() {{
   # The trainer publishes the completion marker only after all files land.
   # A failed final upload must never be converted to success by this trap.
   if [[ $code != 0 && -d "$OUT/workers/$TASK" ]]; then
-    gcloud storage rsync --recursive --exclude='(^|/)SUCCESS[.]json$|[.]tmp$' \
+    gcloud storage rsync --recursive --exclude='(^|/)SUCCESS[.]json$|[.]tmp(/|$)' \
       "$OUT/workers/$TASK" "$REMOTE" || true
   fi
   exit "$code"
 }}
 trap finish EXIT
 trap 'exit 143' TERM
-python -m {module}.run worker --task-index "$INDEX" --output-root "$OUT" --remote-uri "$REMOTE"
+{spec.get('worker_setup', '')}
+python -m {module}.run worker --task-index "$INDEX" --output-root "$OUT" --remote-uri "$REMOTE" {spec.get('worker_arguments', '')}
 """
     if stage == "aggregate":
         return text + f"""
 gcloud storage rsync --recursive {q(remote + '/workers')} "$OUT/workers"
-python -m {module}.run aggregate --output-root "$OUT"
+python -m {module}.run aggregate --output-root "$OUT" {spec.get('aggregate_arguments', '')}
 gcloud storage rsync --recursive --exclude='(^|/)SUCCESS[.]json$' "$OUT/analysis" {q(remote + '/analysis')}
 gcloud storage cp "$OUT/analysis/SUCCESS.json" {q(remote + '/analysis/SUCCESS.json')}
 """
@@ -152,6 +162,7 @@ def build_job(args, stage):
             cpu = resources.get("cpu_milli", cpu)
             memory = resources.get("memory_mib", memory)
     count = 3 if stage == "train" else 1
+    seconds = settings(args).get("stage_seconds", {}).get(stage, seconds)
     return dict(taskGroups=[dict(taskSpec=dict(runnables=[dict(script=dict(text=script(args, stage)))],
                 computeResource=dict(cpuMilli=cpu, memoryMib=memory), maxRetryCount=0,
                 maxRunDuration=f"{seconds}s"), taskCount=count, parallelism=count, taskCountPerNode=1)],
@@ -159,7 +170,7 @@ def build_job(args, stage):
                 instances=[dict(policy=dict(machineType=machine, provisioningModel="STANDARD",
                 bootDisk=dict(sizeGb=disk, type="pd-balanced")))]),
                 logsPolicy=dict(destination="CLOUD_LOGGING"),
-                labels=dict(experiment=f"fhp-vr-exp{settings(args)['number']}-24h", stage=stage))
+                labels=dict(experiment=settings(args).get("label", f"fhp-vr-exp{settings(args)['number']}-24h"), stage=stage))
 
 
 def cloud(args, *command, capture=False, check=True):
@@ -241,6 +252,9 @@ def preflight(args):
         raise ValueError("RUN_ID already has stored outputs; choose a new RUN_ID")
     if "matched no objects" not in result.stderr and "matched no objects" not in result.stdout:
         raise RuntimeError(result.stderr or "Unable to check destination namespace")
+    hook = settings(args).get("preflight_hook")
+    if hook is not None:
+        hook(args)
 
 
 def main(*, experiment=DEFAULT_EXPERIMENT):

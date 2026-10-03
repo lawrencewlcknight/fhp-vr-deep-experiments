@@ -41,7 +41,7 @@ def publish(worker_dir, remote_uri, *, success=False):
         raise ValueError("Remote worker destination must be a gs:// URI")
     # Marker last: a visible SUCCESS.json certifies all referenced files landed.
     subprocess.run(["gcloud", "storage", "rsync", "--recursive",
-                    "--exclude", r"(^|/)SUCCESS\.json$|\.tmp$",
+                    "--exclude", r"(^|/)SUCCESS\.json$|\.tmp(/|$)",
                     str(worker_dir), remote_uri], check=True)
     if success:
         subprocess.run(["gcloud", "storage", "cp", str(worker_dir / "SUCCESS.json"),
@@ -118,7 +118,7 @@ def verify_policy(path, solver=None):
 
 
 def run_worker(output_root, task_index, *, smoke=False, remote_uri=None, threads=THREADS,
-               experiment=default_experiment, solver_factory=None):
+               experiment=default_experiment, solver_factory=None, after_training=None):
     ALGORITHM_ID, ALGORITHM_LABEL = experiment.ALGORITHM_ID, experiment.ALGORITHM_LABEL
     SEEDS, schedule, task_name = experiment.SEEDS, experiment.schedule, experiment.task_name
     if smoke and task_index != 0:
@@ -188,7 +188,7 @@ def run_worker(output_root, task_index, *, smoke=False, remote_uri=None, threads
 
         solver.iteration_callback = progress
         solver.solve(post_checkpoint_callback=checkpoint)
-        if len(snapshots) != 4 or solver.stop_reason != "training_time_budget":
+        if len(snapshots) != len(schedule(smoke)) or solver.stop_reason != "training_time_budget":
             raise RuntimeError(f"Incomplete training: {len(snapshots)} checkpoints; {solver.stop_reason}")
         final = snapshots[-1]
         summary = dict(experiment_name=spec["experiment_name"], algorithm_id=ALGORITHM_ID, seed=seed,
@@ -210,6 +210,10 @@ def run_worker(output_root, task_index, *, smoke=False, remote_uri=None, threads
                                                            if isinstance(a, np.ndarray)))
             summary["model_parameters"][name] = sum(p.numel() for p in trainer.model.parameters())
             summary["input_sizes"][name] = trainer.input_size
+        if after_training is not None:
+            # Run only after solve returns: checkpoint RNG has been restored,
+            # the final complete iteration has finished and Ray has shut down.
+            summary.update(after_training(solver, worker_dir, final, manifest))
         write_json(worker_dir / "summary.json", summary)
         files = [p for p in worker_dir.rglob("*") if p.is_file() and not p.name.endswith(".tmp")]
         success = dict(seed=seed, experiment_name=spec["experiment_name"],

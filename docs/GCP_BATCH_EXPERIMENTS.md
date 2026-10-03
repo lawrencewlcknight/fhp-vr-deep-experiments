@@ -1,5 +1,30 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For **Experiment 6 (48-hour Ray training and final resumable states)**, see
+[the full protocol, validation and continuation guide](../experiments/fhp/exp6_vr_deep_ray8_48h/README.md).
+After committing/pushing and setting the usual environment variables:
+
+```bash
+export REPO_REF="$(git rev-parse HEAD)"
+unset EXP6_RESUME_RUN_ID EXP6_START_HOURS EXP6_TARGET_HOURS
+export RUN_ID="vr6-smoke-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_exp6_vr_deep_ray8_48h.sh smoke-only
+bash gcp/run_exp6_vr_deep_ray8_48h.sh status
+
+# New namespace; the full workflow also runs its own smoke gate.
+export RUN_ID="vr6-ray48-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_exp6_vr_deep_ray8_48h.sh run
+bash gcp/run_exp6_vr_deep_ray8_48h.sh status
+```
+
+Three `n2-standard-16` VMs each retain eight Ray actors and eight learner threads.
+Policies are saved at 6/12/18/24/30/36/42/48 hours, with one complete training
+archive per seed at the final boundary. Earlier policies cannot resume training.
+The worker safety limit is 72 wall-clock hours; the active target remains 48.
+To extend a completed run, set `EXP6_RESUME_RUN_ID`, `EXP6_START_HOURS=48`,
+`EXP6_TARGET_HOURS=72` and a new `RUN_ID`, using the original code SHA. The same
+`run` command checks all source states and continues to the cumulative target.
+
 For **Experiment 5 (eight Ray traversal workers, unchanged central fitting)**,
 see [the synchronous collection guide](../experiments/fhp/exp5_vr_deep_ray8/README.md).
 It retains Experiment 3's three seeds, `n2-standard-16` VMs, 24 active hours and

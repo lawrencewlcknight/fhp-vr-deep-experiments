@@ -59,6 +59,11 @@ checkpoints. Only traversal collection is parallelized; central fitting keeps
 eight threads and unchanged learning settings. No performance evaluation is
 run. See [the Ray experiment and smoke/full-run guide](experiments/fhp/exp5_vr_deep_ray8/README.md).
 
+**Experiment 6: 48-hour Ray training** extends Experiment 5 without changing its
+learning settings. Three seeds retain six-hour policy checkpoints through 48
+hours and save a complete, verified final training state for later continuation.
+No policy evaluation is run. See [the full run and continuation guide](experiments/fhp/exp6_vr_deep_ray8_48h/README.md).
+
 The original two-algorithm Leduc-to-FHP transfer experiment is retained under
 the `archieved_` prefix; it is not the active Experiment 1.
 
