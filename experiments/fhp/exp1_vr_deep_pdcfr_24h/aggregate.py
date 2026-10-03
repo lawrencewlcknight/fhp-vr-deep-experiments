@@ -43,6 +43,16 @@ def verify_worker(worker_dir, *, smoke=False, experiment=default_experiment):
             raise ValueError(f"Worker has wrong {key}")
     if manifest.get("feature_encoder") != expected.get("feature_encoder"):
         raise ValueError("Worker has wrong feature encoder")
+    # VM-only studies must not silently accept outputs carrying the old VM
+    # contract or a changed learner/thread configuration.
+    if expected.get("single_intended_change") == "vm_size":
+        for key in ("reference_vm", "baseline_reference_vm", "baseline_commit",
+                    "single_intended_change", "learner_threads", "traversal_execution",
+                    "parallel_traversal_workers", "performance_evaluation"):
+            if manifest.get(key) != expected[key]:
+                raise ValueError(f"Worker has wrong {key}")
+        if not smoke and manifest["torch_threads"] != expected["learner_threads"]:
+            raise ValueError("Worker has wrong torch_threads")
     if (summary["seed"] != manifest["seed"] or success["seed"] != manifest["seed"]
             or summary["is_smoke"] != smoke or summary["algorithm_id"] != ALGORITHM_ID
             or summary["checkpoint_count"] != 4

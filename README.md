@@ -41,6 +41,12 @@ budget with the exact UCV-ESCHER Experiment 2 encoder. It retains the same flat
 64–64–64 networks and VR-Deep learning rules. See
 [the encoder-transfer specification](experiments/fhp/exp2_vr_deep_lossless_24h/README.md).
 
+**Experiment 3: larger VM, unchanged Experiment 2 learner** uses three
+`n2-standard-16` VMs for the same 24 active hours and 6/12/18/24h checkpoints.
+Eight fitting threads, sequential traversals, networks and learning settings
+are unchanged. There is no performance evaluation or full-state continuation.
+See [the VM-only specification and cloud smoke/full-run instructions](experiments/fhp/exp3_vr_deep_lossless_n2_standard16/README.md).
+
 The original two-algorithm Leduc-to-FHP transfer experiment is retained under
 the `archieved_` prefix; it is not the active Experiment 1.
 

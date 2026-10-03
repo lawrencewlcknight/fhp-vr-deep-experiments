@@ -108,7 +108,7 @@ finish() {{
   python -m fhp_vr_deep.batch_diagnostics finalize \
     --snapshots "$DIAGNOSTICS/resources.jsonl" --output "$DIAGNOSTICS/summary.json" \
     --status-output "$DIAGNOSTICS/status.json" --failure-root "$OUT" --exit-code "$code" \
-    --requested-memory-mib 30000 --job-name {q(args.run_id + '-train')} --bucket-destination "$REMOTE" || true
+    --requested-memory-mib {spec.get('worker_resources', {}).get('memory_mib', 30000)} --job-name {q(args.run_id + '-train')} --bucket-destination "$REMOTE" || true
   gcloud storage rsync --recursive "$DIAGNOSTICS" {q(remote + '/diagnostics')}/"$TASK" || true
   # The trainer publishes the completion marker only after all files land.
   # A failed final upload must never be converted to success by this trap.
@@ -140,6 +140,13 @@ def build_job(args, stage):
     else:
         machine, cpu, memory, disk = "n2-standard-8", 8000, 30000, 200
         seconds = dict(smoke=7200, train=36 * 3600, aggregate=14400)[stage]
+        # Experiment 3 changes only smoke/training allocation, not learner
+        # threads, the controller, aggregation, timeouts or earlier experiments.
+        if stage in ("smoke", "train"):
+            resources = settings(args).get("worker_resources", {})
+            machine = resources.get("machine_type", machine)
+            cpu = resources.get("cpu_milli", cpu)
+            memory = resources.get("memory_mib", memory)
     count = 3 if stage == "train" else 1
     return dict(taskGroups=[dict(taskSpec=dict(runnables=[dict(script=dict(text=script(args, stage)))],
                 computeResource=dict(cpuMilli=cpu, memoryMib=memory), maxRetryCount=0,
@@ -234,7 +241,7 @@ def preflight(args):
 
 def main(*, experiment=DEFAULT_EXPERIMENT):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("run", "orchestrate", "status", "dry-run", "aggregate-only"))
+    parser.add_argument("action", choices=("run", "orchestrate", "status", "dry-run", "aggregate-only", "smoke-only"))
     for name, env in (("project", "PROJECT_ID"), ("region", "REGION"), ("bucket", "BUCKET"),
                       ("service-account", "SA_EMAIL"), ("repo-ref", "REPO_REF"), ("run-id", "RUN_ID")):
         parser.add_argument("--" + name, default=os.environ.get(env))
@@ -249,9 +256,9 @@ def main(*, experiment=DEFAULT_EXPERIMENT):
     elif args.action == "status":
         cloud(args, "batch", "jobs", "list", "--location", args.region,
               "--filter", f"name:{args.run_id}", "--format=table(name.basename(),status.state)")
-    elif args.action == "run":
+    elif args.action in ("run", "smoke-only"):
         preflight(args)
-        name = submit(args, "controller")
+        name = submit(args, "controller" if args.action == "run" else "smoke")
         print(f"Submitted {name}; the laptop may disconnect. Outputs: {args.bucket}/{args.run_id}")
     elif args.action == "aggregate-only":
         # Recovery repeats analysis, never training; the aggregator validates every seed.

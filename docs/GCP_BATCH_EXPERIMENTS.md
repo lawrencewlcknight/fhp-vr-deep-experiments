@@ -1,5 +1,27 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For **Experiment 3 (Experiment 2 on n2-standard-16, 24 active hours)**, see
+[the VM-only experiment guide](../experiments/fhp/exp3_vr_deep_lossless_n2_standard16/README.md).
+With the environment variables below set and the new commit pushed:
+
+```bash
+export REPO_REF="$(git rev-parse HEAD)"
+# Optional standalone cloud smoke; this never submits full training.
+export RUN_ID="vr3-smoke-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_exp3_vr_deep_lossless_n2_standard16.sh smoke-only
+bash gcp/run_exp3_vr_deep_lossless_n2_standard16.sh status
+
+# After the smoke succeeds, use a NEW namespace for the full workflow.
+export RUN_ID="vr3-vm16-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_exp3_vr_deep_lossless_n2_standard16.sh run
+bash gcp/run_exp3_vr_deep_lossless_n2_standard16.sh status
+```
+
+The full workflow always runs its own cloud smoke before three parallel seeds.
+It requires 48 N2 vCPUs for training, plus the controller. Eight fitting threads
+and all Experiment 2 learning settings stay unchanged; only training/smoke
+VMs are larger. No poker-performance evaluation jobs are launched.
+
 For **Experiment 2 (UCV Exp.2 encoder, otherwise unchanged VR-Deep baseline)**,
 use the [dedicated experiment guide](../experiments/fhp/exp2_vr_deep_lossless_24h/README.md)
 and `bash gcp/run_exp2_vr_deep_lossless_24h.sh run`. It uses the same service
