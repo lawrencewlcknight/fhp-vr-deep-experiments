@@ -1,5 +1,29 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For **Experiment 4 (short computation-thread profiling on n2-standard-16)**,
+see [the controlled profiling guide](../experiments/fhp/exp4_vr_deep_thread_profile/README.md).
+It compares 1/2/4/8/16 threads sequentially, with three repeats, identical
+prefit states and minibatches, and trace-controlled full-iteration timings.
+No policy evaluation or 24-hour training jobs are launched. With the environment
+below configured and the new implementation committed and pushed:
+
+```bash
+export REPO_REF="$(git rev-parse HEAD)"
+export RUN_ID="vr4-smoke-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_exp4_vr_deep_thread_profile.sh smoke-only
+bash gcp/run_exp4_vr_deep_thread_profile.sh status
+
+# After a successful smoke, choose a fresh namespace.
+export RUN_ID="vr4-threads-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_exp4_vr_deep_thread_profile.sh run
+bash gcp/run_exp4_vr_deep_thread_profile.sh status
+```
+
+The full job includes its own smoke gate, needs only 16 N2 vCPUs, and has a
+five-hour profiling budget within a six-hour Batch cap. Partial outputs and
+resource diagnostics are retained on failure; no automatic retry is enabled.
+Main results are under `$BUCKET/$RUN_ID/profile/analysis`.
+
 For **Experiment 3 (Experiment 2 on n2-standard-16, 24 active hours)**, see
 [the VM-only experiment guide](../experiments/fhp/exp3_vr_deep_lossless_n2_standard16/README.md).
 With the environment variables below set and the new commit pushed:
