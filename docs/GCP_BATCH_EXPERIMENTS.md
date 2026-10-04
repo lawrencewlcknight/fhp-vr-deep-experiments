@@ -1,5 +1,26 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For **VR Experiments 1–3 evaluation**, see
+[the frozen-policy comparison guide](../experiments/fhp/retrospective_exp1_exp2_exp3_evaluation/README.md).
+From this repo root, with the usual variables and the VR results bucket:
+
+```bash
+export RUN_ID="vr-eval123-smoke-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_retrospective_exp1_exp2_exp3_evaluation.sh smoke-only
+bash gcp/run_retrospective_exp1_exp2_exp3_evaluation.sh status
+
+# After smoke succeeds:
+export RUN_ID="vr-eval123-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_retrospective_exp1_exp2_exp3_evaluation.sh run
+```
+
+One `n2-standard-16` VM evaluates all seeds and 6/12/18/24h checkpoints against
+rule agents and each other, then independently cost-gates LBR on the nine final
+policies only. Main results are saved before LBR. Both repo source trees are
+bundled with hashes; see the guide for dry-run, resume and download commands.
+Inspect `main/STATUS.json` and `lbr/STATUS.json`: a safe budget deferral is not an
+LBR result. No training is performed.
+
 For **Experiment 6 (48-hour Ray training and final resumable states)**, see
 [the full protocol, validation and continuation guide](../experiments/fhp/exp6_vr_deep_ray8_48h/README.md).
 After committing/pushing and setting the usual environment variables:

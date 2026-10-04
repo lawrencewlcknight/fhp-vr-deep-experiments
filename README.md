@@ -121,3 +121,9 @@ The VR-Deep implementation is adapted from `rpSebastian/DeepPDCFR` commit
 `9f156c9fcdac7f8c9bd0debf94c9432d222858d3`, with the correctness corrections
 already audited in the Leduc ESCHER-architecture repository. Full details and
 the upstream licensing caveat are in `vr_deep_cfr/UPSTREAM.md`.
+
+## VR-Deep retrospective evaluation
+
+Compare Experiments 1–3 using the shared evaluation suite: all-seed rule-agent,
+direct and temporal head-to-head play, with a separately cost-gated final-policy
+LBR stage. See [the protocol and GCP smoke/full instructions](experiments/fhp/retrospective_exp1_exp2_exp3_evaluation/README.md).

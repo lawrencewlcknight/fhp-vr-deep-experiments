@@ -1,0 +1,26 @@
+{
+  "exp1": {
+    "run_id": "vr1-24h-20261003-013356",
+    "experiment_name": "exp1_fhp_vr_deep_pdcfr_24h",
+    "analysis_hashes": {
+      "snapshot_inventory.json": "8bee5ecea688be717d58c29af1d225cb93ca8a39eaf182088a8c07c74f4eda03",
+      "summary.json": "2f2e37c6aa49fb8471de02f9e03055bf06628d82af03feb6347e74f7393e024c"
+    }
+  },
+  "exp2": {
+    "run_id": "vr2-encode-20261003-021829",
+    "experiment_name": "exp2_fhp_vr_deep_lossless_24h",
+    "analysis_hashes": {
+      "snapshot_inventory.json": "3a2861f6a6896c62c2e529f4033835a4a1ae9b19dbcceda23673743c744268f2",
+      "summary.json": "daad9fd0532df4a9b8d9c872813cfd5ec126386607b5f7b195fc407d52411ea1"
+    }
+  },
+  "exp3": {
+    "run_id": "vr3-vm16-20261003-162134",
+    "experiment_name": "exp3_fhp_vr_deep_lossless_n2_standard16",
+    "analysis_hashes": {
+      "snapshot_inventory.json": "1f655d167509be8d2d072e48981ed93cc6708e480e29d9e5eb8118c14682476c",
+      "summary.json": "5f0ec6dd364d241e0b2e74080c5207cd84331f47eb0f4d979d7695b2b14ef2b4"
+    }
+  }
+}
