@@ -1,5 +1,29 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For the **final 48-hour SD-CFR / UCV-ESCHER / VR-Deep evaluation**, see
+[the three-way evaluation guide](../experiments/fhp/retrospective_threeway_48h_evaluation/README.md).
+It is a read-only, all-cross-seed comparison of the three completed 48-hour
+cohorts, with a shared rule-agent panel and separately cost-gated LBR:
+
+```bash
+export REPO_REF="$(git rev-parse HEAD)"
+export SD_BUCKET="gs://${PROJECT_ID}-fhp-deep-cfr-results"
+export UCV_BUCKET="gs://${PROJECT_ID}-fhp-escher-results"
+export VR_BUCKET="gs://${PROJECT_ID}-fhp-vr-deep-results"
+
+export RUN_ID="fhp-threeway-smoke-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_threeway_48h_evaluation.sh smoke-only
+bash gcp/run_threeway_48h_evaluation.sh status
+
+# After smoke succeeds, use a fresh production namespace.
+export RUN_ID="fhp-threeway-48h-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_threeway_48h_evaluation.sh run
+```
+
+The runner service account must be able to read both source buckets and write
+the VR output bucket. The guide includes source checks, dry-run, resume,
+monitoring, interpretation and compact download commands.
+
 For **VR Experiments 1–3 evaluation**, see
 [the frozen-policy comparison guide](../experiments/fhp/retrospective_exp1_exp2_exp3_evaluation/README.md).
 From this repo root, with the usual variables and the VR results bucket:

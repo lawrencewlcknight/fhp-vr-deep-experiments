@@ -30,6 +30,12 @@ The repository supports both released VR-Deep variants:
 
 ## Current status
 
+**Final 48-hour three-way evaluation** compares SD-CFR Exp6, UCV-ESCHER Exp16
+and VR-Deep Exp6 at their prespecified 48 active-hour endpoints. It uses all
+nine cross-seed cells for each pair, shared rule-agent and LBR panels, and no
+node-matched endpoint. See the
+[protocol and cloud launch guide](experiments/fhp/retrospective_threeway_48h_evaluation/README.md).
+
 **Experiment 1: selected VR-DeepPDCFR+ on FHP** trains seeds 0, 1 and 2 for
 24 active hours each, on three separate `n2-standard-8` VMs. It retains playable
 policies at 6, 12, 18 and 24 hours, without large full training-state archives.
