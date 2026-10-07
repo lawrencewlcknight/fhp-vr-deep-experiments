@@ -169,6 +169,7 @@ OUTPUT="$WORK/output"
 mkdir -p "$OUTPUT"
 df -h > "$OUTPUT/disk_final.txt" || true
 free -m > "$OUTPUT/memory_final.txt" || true
+exec 9>"$WORK/upload.lock"
 flock -w 180 9
 timeout 600 gcloud storage rsync --recursive --exclude='.*[.]tmp$|(^|/)SUCCESS[.]json$' "$OUTPUT" "$DESTINATION/analysis"
 for marker in "$OUTPUT"/{smoke,main,lbr}/SUCCESS.json; do

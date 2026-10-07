@@ -118,6 +118,17 @@ def test_crossed_bootstrap_rejects_partial_matrix():
     assert low < high
 
 
+def test_csv_schema_includes_fields_present_only_in_later_records(tmp_path):
+    path = tmp_path / "heterogeneous.csv"
+    r.write_csv(path, [dict(algorithm="sd", seed=0),
+                       dict(algorithm="ucv", seed=1, continuation_sha256="abc")])
+    assert path.read_text().splitlines() == [
+        "algorithm,seed,continuation_sha256",
+        "sd,0,",
+        "ucv,1,abc",
+    ]
+
+
 def test_lbr_pilot_timeout_preserves_completed_main(records, tmp_path, monkeypatch):
     (tmp_path / "main").mkdir()
     r.write_json(tmp_path / "main/SUCCESS.json", {"sentinel": True})
@@ -152,6 +163,8 @@ def test_batch_job_is_resumable_single_vm_and_shell_valid(tmp_path):
         file = tmp_path / f"runnable-{index}.sh"
         file.write_text(runnable["script"]["text"])
         subprocess.run(["bash", "-n", str(file)], check=True)
+    finalizer = task["runnables"][-1]["script"]["text"]
+    assert finalizer.index('exec 9>"$WORK/upload.lock"') < finalizer.index("flock -w 180 9")
     assert BATCH.job_config(args, smoke=True)["taskGroups"][0]["taskSpec"]["maxRunDuration"] == "7200s"
 
 

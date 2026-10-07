@@ -299,7 +299,9 @@ def validate_sources(source_root, sd_repo, ucv_repo):
                           path=str(path), sha256=row["sha256"], source_run=RUN_IDS[algorithm],
                           source_commit=SOURCE_COMMITS[algorithm],
                           run_manifest_sha256=sha256(worker / "run_manifest.json"),
-                          checkpoint_manifest_sha256=sha256(worker / "checkpoint_manifest.json"))
+                          checkpoint_manifest_sha256=sha256(worker / "checkpoint_manifest.json"),
+                          continuation_source_sha256="", source10_run_manifest_sha256="",
+                          source10_checkpoint_manifest_sha256="", source10_success_sha256="")
             if algorithm == "ucv":
                 _validate_ucv_lineage(roots[algorithm], source10, seed, record)
             records.append(record)
@@ -533,8 +535,13 @@ def cluster_interval(matrix, *, confidence=.95, draws=10_000, seed=871_223):
 def write_csv(path, rows):
     if not rows:
         raise ValueError("Cannot write an empty table")
+    # Preserve the first-seen column order while accepting audit fields that
+    # apply only to some policy families (for example UCV continuation
+    # lineage). csv.DictWriter otherwise infers a partial schema from row zero
+    # and rejects later records with additional provenance fields.
+    fieldnames = list(dict.fromkeys(key for row in rows for key in row))
     with Path(path).open("w", newline="") as stream:
-        writer = csv.DictWriter(stream, fieldnames=list(rows[0]))
+        writer = csv.DictWriter(stream, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)
 
