@@ -321,7 +321,9 @@ def build_tasks(records, stage, implementation):
     index = {(row["algorithm"], row["seed"]): row for row in records}
     tasks = []
     if stage.startswith("lbr"):
-        total = LBR_PAIRS if stage == "lbr" else (10 if stage == "lbr_profile" else 1)
+        # Even smoke shards need two independent pairs for finite sample
+        # variance and uncertainty fields in the strictly serialized result.
+        total = LBR_PAIRS if stage == "lbr" else (10 if stage == "lbr_profile" else 2)
         shard_size = LBR_SHARD_PAIRS if stage == "lbr" else total
         for algorithm_index, algorithm in enumerate(ALGORITHMS):
             for training_seed in SEEDS:
@@ -397,6 +399,8 @@ def loaded_policy(record, game, *, behavioural=False):
 
 
 def execute_task(task):
+    if task["num_deals"] < 2:
+        raise ValueError("Evaluation shards require at least two duplicate-deal pairs")
     from deep_cfr_poker.game import load_fhp_game
     from fhp_evaluation.duplicate import evaluate_duplicate_match
     from fhp_evaluation.lbr import LBRConfig, LocalBestResponsePolicy

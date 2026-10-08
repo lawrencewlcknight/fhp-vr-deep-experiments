@@ -56,6 +56,30 @@ def source_uris(args):
                 vr=f"{args.vr_bucket}/{args.vr_run_id}")
 
 
+def apt_bootstrap():
+    # Native waiting covers dpkg locks; retries also cover apt's list lock.
+    # Never delete lock files or interrupt the VM's unattended upgrader.
+    return '''apt_with_retry() {
+  local attempt result
+  for attempt in {1..30}; do
+    if apt-get -o DPkg::Lock::Timeout=10 "$@"; then
+      return 0
+    else
+      result=$?
+    fi
+    if [[ "$attempt" -eq 30 ]]; then
+      echo "apt-get $* failed after 30 attempts (exit $result)" >&2
+      return "$result"
+    fi
+    echo "apt-get $* failed (attempt $attempt/30); retrying in 10 seconds" >&2
+    sleep 10
+  done
+}
+apt_with_retry update -qq
+apt_with_retry install -y -qq git curl ca-certificates util-linux
+'''
+
+
 def worker_script(args, *, smoke):
     sources = source_uris(args)
     resume = "1" if args.resume else "0"
@@ -94,8 +118,7 @@ trap cleanup EXIT
 if [[ {resume} -eq 1 ]]; then
   gcloud storage rsync --recursive "$DESTINATION/analysis" "$OUTPUT"
 fi
-apt-get update -qq
-apt-get install -y -qq git curl ca-certificates util-linux
+{apt_bootstrap()}
 git clone {q(VR_REPO)} "$VR_REPOSITORY"
 git -C "$VR_REPOSITORY" checkout --detach {q(args.repo_ref)}
 git clone {q(SD_REPO)} "$SD_REPOSITORY"

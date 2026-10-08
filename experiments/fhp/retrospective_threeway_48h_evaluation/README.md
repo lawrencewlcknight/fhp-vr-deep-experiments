@@ -58,7 +58,17 @@ policies, immutable SD archive chunks and validation metadata. It runs:
 4. LBR only after the main `SUCCESS.json` is durable, and only if its independent
    twofold-margin projection fits a 10-hour cap.
 
-The Batch wall limit is 36 hours, retries are disabled, results are written
+Each LBR smoke target uses two duplicate pairs and 16 pre-flop rollouts. Two
+pairs are the minimum for defined sample variance and uncertainty fields;
+one-pair shards are rejected before loading policies. Result hashing and JSON
+serialization continue to reject NaN and infinity. Smoke outcomes are only
+functional checks, not strength evidence; production budgets are unchanged.
+
+VM setup uses bounded apt retries (up to 30 attempts per command, with a
+10-second dpkg-lock wait and 10 seconds between failures) to tolerate unattended
+upgrade contention without removing locks or killing the updater.
+
+The Batch wall limit is 36 hours, Batch task retries are disabled, results are written
 atomically, and partial shards are uploaded every five minutes. `resume` checks
 the complete scientific identity before reusing any shard. A timing deferral is
 recorded in `STATUS.json` and must not be interpreted as an evaluation result.
@@ -117,6 +127,12 @@ export RUN_ID="the-existing-run-id"
 export REPO_REF="the-original-full-evaluator-commit"
 bash gcp/run_threeway_48h_evaluation.sh resume
 ```
+
+The two-pair smoke repair changes the evaluator's code fingerprint. Do not
+resume `fhp-threeway-48h-20261007-231524` with the repaired code: it contains only
+partial smoke outputs, not production results. After committing and pushing the
+repair, use its full `REPO_REF` with fresh smoke and production IDs as above;
+retain the frozen SD/UCV loader refs and all trained source runs.
 
 Prepare and inspect the exact Batch request without cloud calls:
 

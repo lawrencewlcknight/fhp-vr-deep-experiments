@@ -84,11 +84,87 @@ def test_smoke_exercises_every_source_and_opponent_class(records):
     lbr = r.build_tasks(records, "lbr_smoke", "implementation")
     assert len(smoke) == 72
     assert len(lbr) == 9
-    assert all(task["num_deals"] == 1 and task["rollouts"] == 16 for task in lbr)
+    assert all(task["num_deals"] == 2 and task["rollouts"] == 16 for task in lbr)
     assert {(task["a"]["algorithm"], task["b"]["algorithm"])
             for task in smoke if task["kind"] == "direct"} == {
                 ("sd", "ucv"), ("sd", "vr"), ("ucv", "vr")}
     assert {task["a"]["algorithm"] for task in lbr} == set(r.ALGORITHMS)
+
+
+@pytest.mark.parametrize("algorithm", r.ALGORITHMS)
+def test_real_lbr_smoke_result_is_finite_and_json_round_trips(records, tmp_path, monkeypatch, algorithm):
+    # Only the trained target loader is replaced. Use real FHP play, LBR,
+    # sample statistics, hashing, validation and disk serialization.
+    class FoldOrCall:
+        def action_probabilities(self, state, player):
+            legal = state.legal_actions(player)
+            return {0 if 0 in legal else 1: 1.0}
+
+    loaded = []
+
+    def load_target(record, game, *, behavioural=False):
+        loaded.append((record["algorithm"], behavioural))
+        return FoldOrCall()
+
+    monkeypatch.setattr(r, "loaded_policy", load_target)
+    task = next(task for task in r.build_tasks(records, "lbr_smoke", "implementation")
+                if task["a"]["algorithm"] == algorithm and task["a"]["seed"] == 0)
+    row = r.execute_task(task)
+    assert loaded == [(algorithm, True)]
+    assert row["result"]["num_deal_pairs"] == 2
+    assert row["result"]["num_games"] == 4
+    assert all(np.isfinite(value) for value in row["result"].values()
+               if isinstance(value, float))
+    r.validate_result(row, task)
+    output = tmp_path / "lbr-result.json"
+    r.write_json(output, row)
+    restored = r.read_json(output)
+    assert restored == row
+    r.validate_result(restored, task)
+    # Undefined statistics must still fail closed, not be hidden as zero/null.
+    row["result"]["se_chips_per_hand"] = float("nan")
+    with pytest.raises(ValueError, match="Out of range float"):
+        r.digest(row)
+    with pytest.raises(ValueError, match="Out of range float"):
+        r.write_json(tmp_path / "invalid.json", row)
+
+
+def test_single_pair_shard_is_rejected_before_policy_loading(records, monkeypatch):
+    monkeypatch.setattr(r, "loaded_policy", lambda *a, **kw: pytest.fail("Unexpected policy load"))
+    task = r.build_tasks(records, "lbr_smoke", "implementation")[0]
+    with pytest.raises(ValueError, match="at least two duplicate-deal pairs"):
+        r.execute_task(dict(task, num_deals=1))
+    for stage in ("smoke", "profile", "production", "lbr_smoke", "lbr_profile", "lbr"):
+        assert all(task["num_deals"] >= 2 for task in r.build_tasks(records, stage, "implementation"))
+
+
+@pytest.mark.parametrize("operation", ["update", "install"])
+@pytest.mark.parametrize("failures", [0, 2, 30])
+def test_apt_bootstrap_retries_and_preserves_failure_status(tmp_path, operation, failures):
+    log = tmp_path / "apt-calls.txt"
+    script = f'''set -Eeuo pipefail
+remaining={failures}
+apt-get() {{
+  [[ "$1" == -o && "$2" == DPkg::Lock::Timeout=10 ]] || return 64
+  printf '%s\\n' "$3" >> "$APT_TEST_LOG"
+  if [[ "$3" == {operation} && "$remaining" -gt 0 ]]; then
+    remaining=$((remaining - 1))
+    return 100
+  fi
+}}
+sleep() {{ [[ "$1" == 10 ]]; }}
+{BATCH.apt_bootstrap()}
+'''
+    process = subprocess.run(["bash"], input=script, text=True, capture_output=True,
+                             env=dict(os.environ, APT_TEST_LOG=str(log)), timeout=5)
+    calls = log.read_text().splitlines()
+    exhausted = failures == 30
+    assert process.returncode == (100 if exhausted else 0)
+    assert calls.count(operation) == (30 if exhausted else failures + 1)
+    assert calls.count("install" if operation == "update" else "update") == (
+        0 if exhausted and operation == "update" else 1)
+    assert process.stderr.count("retrying in 10 seconds") == min(failures, 29)
+    assert ("failed after 30 attempts (exit 100)" in process.stderr) == exhausted
 
 
 def test_reports_require_complete_budgets_and_write_family_intervals(records, tmp_path, monkeypatch):
@@ -155,6 +231,8 @@ def test_batch_job_is_resumable_single_vm_and_shell_valid(tmp_path):
     assert policy["bootDisk"]["sizeGb"] == 200
     assert task["runnables"][-1]["alwaysRun"]
     script = task["runnables"][0]["script"]["text"]
+    assert BATCH.apt_bootstrap() in script
+    assert BATCH.apt_bootstrap() in BATCH.worker_script(batch_args(resume=True), smoke=True)
     assert script.index(f"-m {BATCH.MODULE} main") < script.index(f"-m {BATCH.MODULE} lbr")
     assert 'if [[ ! -f "$OUTPUT/main/SUCCESS.json" ]]' in script
     assert "time_48h" in script and "training_state" not in script
