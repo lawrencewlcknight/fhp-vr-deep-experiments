@@ -37,8 +37,6 @@ def fake_result(task):
     value = {"sd": 0.03, "ucv": 0.01, "vr": -0.02}[task["a"]["algorithm"]]
     if task["kind"] == "direct":
         value -= {"sd": 0.03, "ucv": 0.01, "vr": -0.02}[task["b"]["algorithm"]]
-    elif task["kind"] == "lbr":
-        value = 0.05 - value
     result = dict(num_deal_pairs=task["num_deals"], num_games=2*task["num_deals"],
                   mean_chips_per_hand=value, std_chips_per_pair=1.0,
                   mean_mbb_per_hand=value*10, policy_a_player0_mean_chips=value,
@@ -52,21 +50,22 @@ def batch_args(**overrides):
         vr_bucket="gs://test-vr", sd_run_id=r.RUN_IDS["sd"], ucv_run_id=r.RUN_IDS["ucv"],
         ucv_source10_run_id=r.RUN_IDS["ucv_source10"], vr_run_id=r.RUN_IDS["vr"],
         repo_ref="a"*40, sd_ref=BATCH.DEFAULT_SD_REF, ucv_ref=BATCH.DEFAULT_UCV_REF,
-        service_account="runner@test-project.iam.gserviceaccount.com", resume=False)
+        service_account="runner@test-project.iam.gserviceaccount.com", resume=False,
+        evaluation="main", suite_ref=BATCH.DEFAULT_SUITE_REF, sd_audit_ref=BATCH.DEFAULT_SD_AUDIT_REF,
+        pilot_reviewed=False, pilot_run_id=None, action="run")
     values.update(overrides)
     return SimpleNamespace(**values)
 
 
 def test_prespecified_task_contract(records):
     main = r.build_tasks(records, "production", "implementation")
-    lbr = r.build_tasks(records, "lbr", "implementation")
     assert len(main) == 630
     assert sum(task["num_deals"] for task in main) == 3_150_000
     assert sum(task["kind"] == "direct" for task in main) == 540
     assert sum(task["kind"] == "rule" for task in main) == 90
-    assert len(lbr) == 900
-    assert sum(task["num_deals"] for task in lbr) == 9_000
-    assert all(task["rollouts"] == 4096 for task in lbr)
+    for disabled in ("lbr", "lbr_smoke", "lbr_profile"):
+        with pytest.raises(ValueError):
+            r.build_tasks(records, disabled, "implementation")
     for left_seed, right_seed in ((0, 0), (1, 2)):
         selected = [task for task in main if task["kind"] == "direct"
                     and task["a"]["seed"] == left_seed and task["b"]["seed"] == right_seed
@@ -81,20 +80,28 @@ def test_prespecified_task_contract(records):
 
 def test_smoke_exercises_every_source_and_opponent_class(records):
     smoke = r.build_tasks(records, "smoke", "implementation")
-    lbr = r.build_tasks(records, "lbr_smoke", "implementation")
     assert len(smoke) == 72
-    assert len(lbr) == 9
-    assert all(task["num_deals"] == 2 and task["rollouts"] == 16 for task in lbr)
+    assert {task["kind"] for task in smoke} == {"direct", "rule"}
+    assert all(task["num_deals"] == 2 for task in smoke)
     assert {(task["a"]["algorithm"], task["b"]["algorithm"])
             for task in smoke if task["kind"] == "direct"} == {
                 ("sd", "ucv"), ("sd", "vr"), ("ucv", "vr")}
-    assert {task["a"]["algorithm"] for task in lbr} == set(r.ALGORITHMS)
 
 
 @pytest.mark.parametrize("algorithm", r.ALGORITHMS)
-def test_real_lbr_smoke_result_is_finite_and_json_round_trips(records, tmp_path, monkeypatch, algorithm):
-    # Only the trained target loader is replaced. Use real FHP play, LBR,
-    # sample statistics, hashing, validation and disk serialization.
+def test_real_rule_smoke_result_is_finite_and_json_round_trips(records, tmp_path, monkeypatch, algorithm):
+    # The match job deliberately uses SD's pinned duplicate evaluator, whereas
+    # other repo tests import the shared suite. Select the actual match backend
+    # explicitly so test collection order cannot change its seed-layout API.
+    import fhp_evaluation.duplicate as duplicate
+    spec = importlib.util.spec_from_file_location("fhp_evaluation._threeway_duplicate",
+        ROOT.parents[1] / "fhp_deep_cfr/fhp-deep-cfr-experiments/fhp_evaluation/duplicate.py")
+    native_duplicate = importlib.util.module_from_spec(spec)
+    import sys
+    monkeypatch.setitem(sys.modules, spec.name, native_duplicate)
+    spec.loader.exec_module(native_duplicate)
+    monkeypatch.setattr(duplicate, "evaluate_duplicate_match", native_duplicate.evaluate_duplicate_match)
+    # Only trained policy loading is stubbed; play and statistics remain real.
     class FoldOrCall:
         def action_probabilities(self, state, player):
             legal = state.legal_actions(player)
@@ -102,21 +109,21 @@ def test_real_lbr_smoke_result_is_finite_and_json_round_trips(records, tmp_path,
 
     loaded = []
 
-    def load_target(record, game, *, behavioural=False):
-        loaded.append((record["algorithm"], behavioural))
+    def load_target(record, game):
+        loaded.append(record["algorithm"])
         return FoldOrCall()
 
     monkeypatch.setattr(r, "loaded_policy", load_target)
-    task = next(task for task in r.build_tasks(records, "lbr_smoke", "implementation")
-                if task["a"]["algorithm"] == algorithm and task["a"]["seed"] == 0)
+    task = next(task for task in r.build_tasks(records, "smoke", "implementation")
+                if task["kind"] == "rule" and task["a"]["algorithm"] == algorithm and task["a"]["seed"] == 0)
     row = r.execute_task(task)
-    assert loaded == [(algorithm, True)]
+    assert loaded == [algorithm]
     assert row["result"]["num_deal_pairs"] == 2
     assert row["result"]["num_games"] == 4
     assert all(np.isfinite(value) for value in row["result"].values()
                if isinstance(value, float))
     r.validate_result(row, task)
-    output = tmp_path / "lbr-result.json"
+    output = tmp_path / "rule-result.json"
     r.write_json(output, row)
     restored = r.read_json(output)
     assert restored == row
@@ -131,11 +138,13 @@ def test_real_lbr_smoke_result_is_finite_and_json_round_trips(records, tmp_path,
 
 def test_single_pair_shard_is_rejected_before_policy_loading(records, monkeypatch):
     monkeypatch.setattr(r, "loaded_policy", lambda *a, **kw: pytest.fail("Unexpected policy load"))
-    task = r.build_tasks(records, "lbr_smoke", "implementation")[0]
+    task = r.build_tasks(records, "smoke", "implementation")[0]
     with pytest.raises(ValueError, match="at least two duplicate-deal pairs"):
         r.execute_task(dict(task, num_deals=1))
-    for stage in ("smoke", "profile", "production", "lbr_smoke", "lbr_profile", "lbr"):
+    for stage in ("smoke", "profile", "production"):
         assert all(task["num_deals"] >= 2 for task in r.build_tasks(records, stage, "implementation"))
+    with pytest.raises(ValueError, match="LBR is excluded"):
+        r.execute_task(dict(task, kind="lbr"))
 
 
 @pytest.mark.parametrize("operation", ["update", "install"])
@@ -182,9 +191,7 @@ def test_reports_require_complete_budgets_and_write_family_intervals(records, tm
     incomplete = [fake_result(task) for task in main_tasks[:-1]]
     with pytest.raises(ValueError, match="Incomplete rule-agent"):
         r.report_main(incomplete, tmp_path / "incomplete")
-    lbr = r.report_lbr([fake_result(task) for task in r.build_tasks(
-        records, "lbr", "implementation")], tmp_path / "lbr")
-    assert lbr["lower_bound_only"] is True and len(lbr["results"]) == 3
+    assert summary["lbr_evaluated"] is False
 
 
 def test_crossed_bootstrap_rejects_partial_matrix():
@@ -205,17 +212,15 @@ def test_csv_schema_includes_fields_present_only_in_later_records(tmp_path):
     ]
 
 
-def test_lbr_pilot_timeout_preserves_completed_main(records, tmp_path, monkeypatch):
-    (tmp_path / "main").mkdir()
-    r.write_json(tmp_path / "main/SUCCESS.json", {"sentinel": True})
+def test_main_pilot_timeout_does_not_claim_completion(records, tmp_path, monkeypatch):
     monkeypatch.setattr(r, "run_tasks", lambda *args, **kwargs: (_ for _ in ()).throw(
         TimeoutError("pilot deadline")
     ))
-    args = SimpleNamespace(output=tmp_path, stage="lbr", max_hours=10, workers=16,
+    args = SimpleNamespace(output=tmp_path, stage="main", max_hours=22, workers=16,
                            sd_repo=tmp_path / "sd", ucv_repo=tmp_path / "ucv")
     r.run_stage(args, records, "implementation", {"identity": 1})
-    assert r.read_json(tmp_path / "main/SUCCESS.json") == {"sentinel": True}
-    assert r.read_json(tmp_path / "lbr/STATUS.json")["status"] == "deferred_pilot_timeout"
+    assert not (tmp_path / "main/SUCCESS.json").exists()
+    assert r.read_json(tmp_path / "main/STATUS.json")["status"] == "deferred_pilot_timeout"
 
 
 def test_batch_job_is_resumable_single_vm_and_shell_valid(tmp_path):
@@ -224,7 +229,7 @@ def test_batch_job_is_resumable_single_vm_and_shell_valid(tmp_path):
     job = BATCH.job_config(args)
     task = job["taskGroups"][0]["taskSpec"]
     assert task["maxRetryCount"] == 0
-    assert task["maxRunDuration"] == "129600s"
+    assert task["maxRunDuration"] == "93600s"
     assert task["computeResource"] == {"cpuMilli": 16000, "memoryMib": 62000}
     policy = job["allocationPolicy"]["instances"][0]["policy"]
     assert policy["machineType"] == "n2-standard-16"
@@ -233,8 +238,9 @@ def test_batch_job_is_resumable_single_vm_and_shell_valid(tmp_path):
     script = task["runnables"][0]["script"]["text"]
     assert BATCH.apt_bootstrap() in script
     assert BATCH.apt_bootstrap() in BATCH.worker_script(batch_args(resume=True), smoke=True)
-    assert script.index(f"-m {BATCH.MODULE} main") < script.index(f"-m {BATCH.MODULE} lbr")
-    assert 'if [[ ! -f "$OUTPUT/main/SUCCESS.json" ]]' in script
+    assert script.index(f"-m {BATCH.MODULE} smoke") < script.index(f"-m {BATCH.MODULE} main")
+    assert f"-m {BATCH.MODULE} lbr" not in script
+    assert "--stage pilot" not in script
     assert "time_48h" in script and "training_state" not in script
     assert r.RUN_IDS["sd"] in script and r.RUN_IDS["ucv"] in script and r.RUN_IDS["vr"] in script
     for index, runnable in enumerate(task["runnables"]):
@@ -259,6 +265,22 @@ def test_source_paths_cannot_escape(tmp_path):
     for value in ("../bad.pt", "/tmp/bad.pt"):
         with pytest.raises(ValueError, match="escapes"):
             r.contained(tmp_path, value)
+
+
+def test_smoke_then_main_reuses_json_manifest_contract(records, tmp_path, monkeypatch):
+    monkeypatch.setattr(r, "setup_repositories", lambda *a: None)
+    monkeypatch.setattr(r, "validate_sources", lambda *a: records)
+    monkeypatch.setattr(r, "implementation_digest", lambda *a: "implementation")
+    stages = []
+    monkeypatch.setattr(r, "run_stage", lambda args, *a: stages.append(args.stage))
+    argv = ["--source-root", str(tmp_path), "--sd-repo", str(tmp_path),
+            "--ucv-repo", str(tmp_path), "--output", str(tmp_path / "out")]
+    r.main(["smoke", *argv])
+    r.main(["main", *argv])
+    assert stages == ["smoke", "main"]
+    identity = r.read_json(tmp_path / "out/evaluation_manifest.json")["identity"]
+    assert identity["lbr_evaluated"] is False
+    assert identity["comparisons"] == [list(row) for row in r.COMPARISONS]
 
 
 def test_launcher_is_syntax_valid():

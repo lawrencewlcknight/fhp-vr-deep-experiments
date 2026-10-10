@@ -47,13 +47,10 @@ SOURCE_NAMES = {
 CONFIG_SHA256 = {"sd": "4e7993aa32d755d9b3f69140c257b3ffc2ee03a48187aa43dd3be760172fc576",
                  "ucv": "065734572e18f4597dd8f494ea39230c1f193b9d68aa775138c4a8a3e39eddad",
                  "vr": "dfbbfc38f8cede42aa27844994af2c40f639f46ef42f29f23efd8ba629a0746f"}
-PROTOCOL = "fhp_threeway_final_48h_cross_seed_v1"
+PROTOCOL = "fhp_threeway_final_48h_cross_seed_v2_no_lbr"
 DIRECT_PAIRS = 100_000
 RULE_PAIRS = 10_000
-LBR_PAIRS = 1_000
 SHARD_PAIRS = 5_000
-LBR_SHARD_PAIRS = 10
-LBR_ROLLOUTS = 4096
 BASE_SEED = 601_048
 FAMILY_CONFIDENCE = 1.0 - 0.05 / len(COMPARISONS)
 
@@ -316,28 +313,10 @@ def _seed(stage, *parts):
 
 
 def build_tasks(records, stage, implementation):
-    if stage not in {"smoke", "profile", "production", "lbr_smoke", "lbr_profile", "lbr"}:
+    if stage not in {"smoke", "profile", "production"}:
         raise ValueError(stage)
     index = {(row["algorithm"], row["seed"]): row for row in records}
     tasks = []
-    if stage.startswith("lbr"):
-        # Even smoke shards need two independent pairs for finite sample
-        # variance and uncertainty fields in the strictly serialized result.
-        total = LBR_PAIRS if stage == "lbr" else (10 if stage == "lbr_profile" else 2)
-        shard_size = LBR_SHARD_PAIRS if stage == "lbr" else total
-        for algorithm_index, algorithm in enumerate(ALGORITHMS):
-            for training_seed in SEEDS:
-                cell = f"lbr_{algorithm}_s{training_seed}"
-                for shard, start in enumerate(range(0, total, shard_size)):
-                    tasks.append(dict(task_id=f"{cell}_{shard:03d}", cell_id=cell, kind="lbr",
-                        a=index[algorithm, training_seed], opponent="local_best_response",
-                        num_deals=min(shard_size, total-start), evaluation_seed=_seed(
-                            "production" if stage == "lbr" else stage.removeprefix("lbr_"),
-                            900, algorithm_index, training_seed, shard),
-                        lbr_seed=BASE_SEED + 800_000,
-                        rollouts=16 if stage == "lbr_smoke" else LBR_ROLLOUTS, stage=stage,
-                        protocol=PROTOCOL, implementation=implementation))
-        return tasks
     direct_total = DIRECT_PAIRS if stage == "production" else (128 if stage == "profile" else 2)
     rule_total = RULE_PAIRS if stage == "production" else (128 if stage == "profile" else 2)
     from fhp_evaluation.rule_agents import PUBLISHED_AGENT_NAMES
@@ -376,15 +355,15 @@ def initialise_worker(sd_repo, ucv_repo):
     setup_repositories(sd_repo, ucv_repo)
 
 
-def loaded_policy(record, game, *, behavioural=False):
-    key = record["algorithm"], record["sha256"], behavioural
+def loaded_policy(record, game):
+    key = record["algorithm"], record["sha256"]
     if key not in _POLICIES:
         if sha256(record["path"]) != record["sha256"]:
             raise ValueError("Checkpoint changed after validation")
         if record["algorithm"] == "sd":
-            from deep_cfr_poker.sd_cfr_disk import DiskArchiveReader, DiskBehaviouralPolicy, DiskSampledPolicy
+            from deep_cfr_poker.sd_cfr_disk import DiskArchiveReader, DiskSampledPolicy
             reader = DiskArchiveReader(record["path"], game, verify=False)
-            value = DiskBehaviouralPolicy(reader, game) if behavioural else DiskSampledPolicy(reader)
+            value = DiskSampledPolicy(reader)
         elif record["algorithm"] == "ucv":
             from fhp_escher.checkpointing import LoadedFHPPolicy
             value = LoadedFHPPolicy(game, record["path"])
@@ -403,21 +382,18 @@ def execute_task(task):
         raise ValueError("Evaluation shards require at least two duplicate-deal pairs")
     from deep_cfr_poker.game import load_fhp_game
     from fhp_evaluation.duplicate import evaluate_duplicate_match
-    from fhp_evaluation.lbr import LBRConfig, LocalBestResponsePolicy
     from fhp_evaluation.rule_agents import published_rule_agents
     started = time.perf_counter()
     game = load_fhp_game()
-    target = loaded_policy(task["a"], game, behavioural=task["kind"] == "lbr")
+    if task["kind"] not in {"direct", "rule"}:
+        raise ValueError("Only direct and rule-agent matches are enabled; LBR is excluded")
+    target = loaded_policy(task["a"], game)
     if task["kind"] == "direct":
         left, right = target, loaded_policy(task["b"], game)
         left_name, right_name = task["a"]["label"], task["b"]["label"]
     elif task["kind"] == "rule":
         left, right = target, published_rule_agents(game)[task["opponent"]]
         left_name, right_name = task["a"]["label"], task["opponent"]
-    elif task["kind"] == "lbr":
-        left = LocalBestResponsePolicy(game, target, config=LBRConfig(
-            preflop_rollout_samples=task["rollouts"], seed=task["lbr_seed"]))
-        right, left_name, right_name = target, "local_best_response", task["a"]["label"]
     else:
         raise ValueError(task["kind"])
     result = evaluate_duplicate_match(game, left, right, num_deals=task["num_deals"],
@@ -611,6 +587,7 @@ def report_main(results, output):
     write_csv(output / "direct_comparison_summary.csv", direct_summaries)
     write_csv(output / "rule_agent_summary.csv", rule_summaries)
     summary = dict(protocol=PROTOCOL, status="complete", training_checkpoint_hours=48,
+        lbr_evaluated=False, strategic_audit="separate pilot/development jobs; see their own completion markers",
         direct_comparisons=direct_summaries, rule_agent_results=rule_summaries,
         units="mbb/hand", family_confidence=FAMILY_CONFIDENCE,
         inference=("10,000 independent row/column training-seed bootstrap draws. The three co-primary "
@@ -632,36 +609,6 @@ def report_main(results, output):
                      f"[{row['family_ci98_33_low']:.3f}, {row['family_ci98_33_high']:.3f}] |")
     lines += ["", "Node counts are reported descriptively in `direct_comparison_summary.csv`; no node-matched endpoint is included.", ""]
     (output / "analysis_summary.md").write_text("\n".join(lines))
-    return summary
-
-
-def report_lbr(results, output):
-    output = Path(output)
-    output.mkdir(parents=True, exist_ok=True)
-    cells = []
-    for cell_id in sorted({row["task"]["cell_id"] for row in results}):
-        selected = [row for row in results if row["task"]["cell_id"] == cell_id]
-        task = selected[0]["task"]
-        pooled = pool_shards(selected)
-        if pooled["duplicate_pairs"] != LBR_PAIRS:
-            raise ValueError("Incomplete LBR deal budget")
-        cells.append(dict(cell_id=cell_id, algorithm=task["a"]["algorithm"], seed=task["a"]["seed"],
-                          nodes_touched=task["a"]["nodes_touched"], rollouts=task["rollouts"], **pooled))
-    summaries = []
-    for algorithm in ALGORITHMS:
-        selected = sorted((row for row in cells if row["algorithm"] == algorithm), key=lambda row: row["seed"])
-        if [row["seed"] for row in selected] != list(SEEDS):
-            raise ValueError("Incomplete LBR training-seed panel")
-        summaries.append(dict(algorithm=algorithm, positive_favours="local_best_response",
-            nodes_mean=float(np.mean([row["nodes_touched"] for row in selected])),
-            duplicate_pairs=sum(row["duplicate_pairs"] for row in selected),
-            **_student_summary([row["mean_mbb_per_hand"] for row in selected])))
-    write_csv(output / "lbr_by_seed.csv", cells)
-    write_csv(output / "lbr_summary.csv", summaries)
-    summary = dict(protocol=PROTOCOL, status="complete", lower_bound_only=True,
-                   preflop_rollouts=LBR_ROLLOUTS, results=summaries, units="mbb/hand",
-                   positive_favours="local_best_response")
-    write_json(output / "summary.json", summary)
     return summary
 
 
@@ -700,13 +647,16 @@ def _complete_stage(output, identity):
 
 
 def run_stage(args, records, implementation, identity):
+    if args.stage == "prepare-strategic":
+        write_json(args.output / "strategic_sources.json", dict(records=records, identity=identity))
+        return
     output = args.output / args.stage
     output.mkdir(parents=True, exist_ok=True)
     if _complete_stage(output, identity):
         write_json(output / "STATUS.json", dict(status="complete", reused=True, stage=args.stage))
         return
     if args.stage == "smoke":
-        tasks = build_tasks(records, "smoke", implementation) + build_tasks(records, "lbr_smoke", implementation)
+        tasks = build_tasks(records, "smoke", implementation)
         results = run_tasks(tasks, output / "tasks", workers=args.workers,
                             sd_repo=args.sd_repo, ucv_repo=args.ucv_repo,
                             deadline=time.monotonic() + args.max_hours*3600)
@@ -714,17 +664,17 @@ def run_stage(args, records, implementation, identity):
                                                    identity_sha256=digest(identity), files={}))
         write_json(output / "STATUS.json", dict(status="complete", stage="smoke"))
         return
-    production_stage = "production" if args.stage == "main" else "lbr"
-    profile_stage = "profile" if args.stage == "main" else "lbr_profile"
-    tasks = build_tasks(records, production_stage, implementation)
+    if args.stage != "main":
+        raise ValueError("Unknown stage; LBR is excluded from this evaluation")
+    tasks = build_tasks(records, "production", implementation)
     started = time.monotonic()
     deadline = started + args.max_hours * 3600
     write_json(output / "STATUS.json", dict(status="profiling", stage=args.stage))
     try:
-        probes = run_tasks(build_tasks(records, profile_stage, implementation),
+        probes = run_tasks(build_tasks(records, "profile", implementation),
                            output / "profile" / str(time.time_ns()), workers=args.workers,
                            sd_repo=args.sd_repo, ucv_repo=args.ucv_repo,
-                           deadline=min(deadline, time.monotonic() + (1800 if args.stage == "lbr" else 900)))
+                           deadline=min(deadline, time.monotonic() + 900))
     except TimeoutError:
         write_json(output / "STATUS.json", dict(status="deferred_pilot_timeout", stage=args.stage,
             message="Full scoring was not started; completed earlier stages are unaffected."))
@@ -746,7 +696,7 @@ def run_stage(args, records, implementation, identity):
     write_json(output / "STATUS.json", dict(status="scoring", stage=args.stage))
     results = run_tasks(tasks, output / "task_results", workers=args.workers,
                         sd_repo=args.sd_repo, ucv_repo=args.ucv_repo, deadline=deadline)
-    summary = report_main(results, output) if args.stage == "main" else report_lbr(results, output)
+    summary = report_main(results, output)
     files = {str(path.relative_to(output)): sha256(path) for path in output.iterdir()
              if path.is_file() and path.name not in {"STATUS.json", "SUCCESS.json"}}
     write_json(output / "SUCCESS.json", dict(status="complete", protocol=PROTOCOL,
@@ -757,7 +707,7 @@ def run_stage(args, records, implementation, identity):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("stage", choices=("smoke", "main", "lbr"))
+    parser.add_argument("stage", choices=("smoke", "main", "prepare-strategic"))
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--sd-repo", type=Path, required=True)
     parser.add_argument("--ucv-repo", type=Path, required=True)
@@ -778,11 +728,12 @@ def main(argv=None):
     identity = dict(protocol=PROTOCOL, implementation_sha256=implementation,
                     sources=portable(records), source_uris=sorted(args.source_uri), environment=environment,
                     direct_pairs_per_cross_seed_cell=DIRECT_PAIRS, rule_pairs_per_policy_agent=RULE_PAIRS,
-                    lbr_pairs_per_policy=LBR_PAIRS, lbr_preflop_rollouts=LBR_ROLLOUTS,
-                    seed_layout="split", comparisons=COMPARISONS,
+                    lbr_evaluated=False,
+                    # Keep the in-memory contract equal to its JSON round trip
+                    # when smoke and main run in successive processes.
+                    seed_layout="split", comparisons=[list(row) for row in COMPARISONS],
                     inference=dict(bootstrap_draws=10_000, family_confidence=FAMILY_CONFIDENCE),
                     policy_representations=dict(sd_direct="full_uniform_historical_trajectory_mixture",
-                        sd_lbr="exact_own_reach_behavioural_mixture",
                         ucv="saved_deployed_average_policy_network",
                         vr="saved_deployed_average_policy_network"))
     args.output.mkdir(parents=True, exist_ok=True)

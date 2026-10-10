@@ -15,6 +15,10 @@ import tempfile
 VR_REPO = "https://github.com/lawrencewlcknight/fhp-vr-deep-experiments.git"
 SD_REPO = "https://github.com/lawrencewlcknight/fhp-deep-cfr-experiments.git"
 UCV_REPO = "https://github.com/lawrencewlcknight/fhp-ucv-escher-experiments.git"
+SUITE_REPO = "https://github.com/lawrencewlcknight/fhp-evaluation-suite.git"
+DEFAULT_SUITE_REF = "edd0ae45a58ee275eab297fbeca3497e50908c78"
+DEFAULT_SD_AUDIT_REF = "b670d99968d49f33744eed4a76640057e43c15b8"
+ANCHOR_RUN = "exp9-cache24-20261001-132550"
 DEFAULT_SD_REF = "bb689252d6b322adb3de6102d095a49c3ed87250"
 DEFAULT_UCV_REF = "cf04f1a710e7b947da9fc1c41ae0159c420c72eb"
 MODULE = "experiments.fhp.retrospective_threeway_48h_evaluation.run"
@@ -42,11 +46,22 @@ def validate(args):
     for key in ("bucket", "sd_bucket", "ucv_bucket", "vr_bucket"):
         if not re.fullmatch(r"gs://[a-z0-9][a-z0-9._-]+", getattr(args, key)):
             raise ValueError(f"{key} must be a bucket URI without a subdirectory")
-    for key in ("repo_ref", "sd_ref", "ucv_ref"):
+    for key in ("repo_ref", "sd_ref", "ucv_ref", "suite_ref", "sd_audit_ref"):
         if not re.fullmatch(r"[0-9a-f]{40}", getattr(args, key) or ""):
             raise ValueError(f"{key} must be a full pushed commit SHA")
     if not re.fullmatch(r"[^@\s]+@[^@\s]+[.]iam[.]gserviceaccount[.]com", args.service_account or ""):
         raise ValueError("Set the Batch runner service-account email")
+    if args.evaluation not in ("main", "strategic-pilot", "strategic-development"):
+        raise ValueError("Unknown evaluation component")
+    if args.evaluation == "strategic-development":
+        if not args.pilot_reviewed or not re.fullmatch(r"[a-z][a-z0-9-]{0,33}[a-z0-9]", args.pilot_run_id or ""):
+            raise ValueError("Development requires --pilot-run-id and --pilot-reviewed")
+        if args.pilot_run_id == args.run_id:
+            raise ValueError("Development requires a fresh namespace, separate from pilot")
+    elif args.pilot_run_id or args.pilot_reviewed:
+        raise ValueError("Pilot-review flags apply only to strategic development")
+    if args.action == "smoke-only" and args.evaluation != "main":
+        raise ValueError("Use run --evaluation strategic-pilot for the native audit pilot")
 
 
 def source_uris(args):
@@ -84,6 +99,40 @@ def worker_script(args, *, smoke):
     sources = source_uris(args)
     resume = "1" if args.resume else "0"
     smoke_value = "1" if smoke else "0"
+    audit = args.evaluation != "main"
+    audit_setup = ""
+    if audit:
+        audit_setup = f'''git clone {q(SUITE_REPO)} "$WORK/evaluation-suite"
+git -C "$WORK/evaluation-suite" checkout --detach {q(args.suite_ref)}
+git clone {q(SD_REPO)} "$WORK/sd-audit-repository"
+git -C "$WORK/sd-audit-repository" checkout --detach {q(args.sd_audit_ref)}
+printf '%s\\n' {q(json.dumps(execution_refs(args), sort_keys=True))} > "$OUTPUT/execution_refs.json"
+mkdir -p "$INPUT/anchors"
+for seed in 0 1 2; do
+  NAME="cached_parallel_structured_ucv_escher_seed_${{seed}}"
+  gcloud storage cp {q(args.ucv_bucket + '/' + ANCHOR_RUN)}/workers/task_00${{seed}}_${{NAME}}/checkpoints/${{NAME}}_time_24h.pkl \\
+    "$INPUT/anchors/exp9_seed${{seed}}_24h.pkl"
+done
+'''
+    if audit:
+        scoring = f'''"$WORK/venv/bin/python" -m {MODULE} prepare-strategic "${{ARGS[@]}}"
+# Keep the suite and each native family isolated from the match runner's imports.
+cd "$WORK/evaluation-suite"
+export PYTHONPATH="$WORK/evaluation-suite"
+"$WORK/venv/bin/python" "$VR_REPOSITORY/experiments/fhp/retrospective_threeway_48h_evaluation/strategic.py" \\
+  --stage {q(args.evaluation.removeprefix('strategic-'))} \\
+  --sources "$OUTPUT/strategic_sources.json" --execution-refs "$OUTPUT/execution_refs.json" \\
+  --suite-repo "$WORK/evaluation-suite" --sd-repo "$WORK/sd-audit-repository" \\
+  --ucv-repo "$UCV_REPOSITORY" --vr-repo "$VR_REPOSITORY" --anchor-root "$INPUT/anchors" \\
+  --output "$OUTPUT/{args.evaluation}"
+'''
+    else:
+        scoring = f'''"$WORK/venv/bin/python" -m {MODULE} smoke "${{ARGS[@]}}" --max-hours 1
+(sync_outputs) 9>"$WORK/upload.lock"
+if [[ {smoke_value} -eq 1 ]]; then exit 0; fi
+"$WORK/venv/bin/python" -m {MODULE} main "${{ARGS[@]}}" --max-hours 22
+(sync_outputs) 9>"$WORK/upload.lock"
+'''
     return f'''#!/usr/bin/env bash
 set -Eeuo pipefail
 export DEBIAN_FRONTEND=noninteractive PYTHONUNBUFFERED=1 PYTHONFAULTHANDLER=1 PYTHONDONTWRITEBYTECODE=1
@@ -100,11 +149,7 @@ mkdir -p "$INPUT" "$OUTPUT"
 SYNC_PID=""
 sync_outputs() {{
   flock -w 180 9 || return 1
-  timeout 300 gcloud storage rsync --recursive --exclude='.*[.]tmp$|(^|/)SUCCESS[.]json$' "$OUTPUT" "$DESTINATION/analysis"
-  for marker in "$OUTPUT"/{{smoke,main,lbr}}/SUCCESS.json; do
-    [[ -f "$marker" ]] || continue
-    timeout 60 gcloud storage cp "$marker" "$DESTINATION/analysis/${{marker#"$OUTPUT/"}}"
-  done
+  {upload_outputs()}
 }}
 cleanup() {{
   result=$?
@@ -131,6 +176,7 @@ uv python install 3.11.17
 uv venv --python 3.11.17 --seed "$WORK/venv"
 uv pip install --python "$WORK/venv/bin/python" -r "$VR_REPOSITORY/requirements.txt"
 "$WORK/venv/bin/python" -m pip check
+{audit_setup}
 export PYTHONPATH="$VR_REPOSITORY:$SD_REPOSITORY:$UCV_REPOSITORY"
 cd "$VR_REPOSITORY"
 "$WORK/venv/bin/python" -m pip freeze > "$OUTPUT/pip_freeze.txt"
@@ -171,17 +217,31 @@ ARGS=(--source-root "$INPUT" --sd-repo "$SD_REPOSITORY" --ucv-repo "$UCV_REPOSIT
       --output "$OUTPUT" --workers 16
       --source-uri "sd=$SD_SOURCE" --source-uri "ucv=$UCV_SOURCE"
       --source-uri "ucv_source10=$UCV_SOURCE10" --source-uri "vr=$VR_SOURCE")
-"$WORK/venv/bin/python" -m {MODULE} smoke "${{ARGS[@]}}" --max-hours 1
-(sync_outputs) 9>"$WORK/upload.lock"
-if [[ {smoke_value} -eq 1 ]]; then exit 0; fi
-"$WORK/venv/bin/python" -m {MODULE} main "${{ARGS[@]}}" --max-hours 22
-(sync_outputs) 9>"$WORK/upload.lock"
-if [[ ! -f "$OUTPUT/main/SUCCESS.json" ]]; then
-  echo "Main timing gate deferred production scoring; LBR will not start."
-  exit 0
-fi
-"$WORK/venv/bin/python" -m {MODULE} lbr "${{ARGS[@]}}" --max-hours 10
+{scoring}
 '''
+
+
+def execution_refs(args):
+    return {name: getattr(args, name) for name in ("repo_ref", "sd_ref", "ucv_ref", "suite_ref", "sd_audit_ref")}
+
+
+def upload_outputs():
+    # Data first, immutable board-cache markers next, final completion last.
+    # Freeze marker eligibility BEFORE the data traversal. Otherwise a board
+    # finishing mid-upload could publish a marker for files not yet uploaded.
+    return '''local markers marker relative
+  markers="$(mktemp -d "$WORK/upload-markers.XXXXXX")" || return 1
+  while IFS= read -r -d '' marker; do
+    relative="${marker#"$OUTPUT/"}"
+    mkdir -p "$markers/$(dirname "$relative")" || return 1
+    cp "$marker" "$markers/$relative" || return 1
+  done < <(find "$OUTPUT" -type f -name SUCCESS.json -print0)
+  timeout 600 gcloud storage rsync --recursive --exclude='.*[.]tmp([.]npz)?$|(^|/)SUCCESS[.]json$' "$OUTPUT" "$DESTINATION/analysis" || return 1
+  timeout 180 gcloud storage rsync --recursive --exclude='(^|/)(smoke|main|analysis)/SUCCESS[.]json$' "$markers" "$DESTINATION/analysis" || return 1
+  for marker in "$markers"/{smoke,main,strategic-pilot/analysis,strategic-development/analysis}/SUCCESS.json; do
+    [[ -f "$marker" ]] || continue
+    timeout 60 gcloud storage cp "$marker" "$DESTINATION/analysis/${marker#"$markers/"}" || return 1
+  done'''
 
 
 def finalizer_script():
@@ -194,20 +254,20 @@ df -h > "$OUTPUT/disk_final.txt" || true
 free -m > "$OUTPUT/memory_final.txt" || true
 exec 9>"$WORK/upload.lock"
 flock -w 180 9
-timeout 600 gcloud storage rsync --recursive --exclude='.*[.]tmp$|(^|/)SUCCESS[.]json$' "$OUTPUT" "$DESTINATION/analysis"
-for marker in "$OUTPUT"/{smoke,main,lbr}/SUCCESS.json; do
-  [[ -f "$marker" ]] || continue
-  timeout 60 gcloud storage cp "$marker" "$DESTINATION/analysis/${marker#"$OUTPUT/"}"
-done
+upload_outputs() {
+''' + upload_outputs() + '''
+}
+upload_outputs
 '''
 
 
 def job_config(args, *, smoke=False):
-    seconds = 7200 if smoke else 36 * 3600
+    seconds = 7200 if smoke else {"main": 26*3600, "strategic-pilot": 6*3600,
+                                 "strategic-development": 24*3600}[args.evaluation]
     environment = dict(variables={"DESTINATION": f"{args.bucket}/{args.run_id}"})
     return dict(taskGroups=[dict(taskCount=1, parallelism=1, taskSpec=dict(
-        runnables=[dict(script=dict(text=worker_script(args, smoke=smoke)), timeout=f"{seconds-1200}s"),
-                   dict(alwaysRun=True, script=dict(text=finalizer_script()), timeout="900s")],
+        runnables=[dict(script=dict(text=worker_script(args, smoke=smoke)), timeout=f"{seconds-1500}s"),
+                   dict(alwaysRun=True, script=dict(text=finalizer_script()), timeout="1200s")],
         computeResource=dict(cpuMilli=16000, memoryMib=62000), maxRetryCount=0,
         maxRunDuration=f"{seconds}s", environment=environment))],
         allocationPolicy=dict(instances=[dict(policy=dict(machineType="n2-standard-16",
@@ -216,7 +276,7 @@ def job_config(args, *, smoke=False):
                 scopes=["https://www.googleapis.com/auth/cloud-platform"])),
         logsPolicy=dict(destination="CLOUD_LOGGING"),
         labels=dict(workload="fhp-threeway-48h", run=args.run_id,
-                    stage="smoke" if smoke else "evaluation"))
+                    stage="smoke" if smoke else args.evaluation))
 
 
 def cloud(args, *command, check=True):
@@ -265,6 +325,31 @@ def check_sources(args):
                 for name in ("run_manifest.json", "checkpoint_manifest.json", "SUCCESS.json"):
                     if not object_exists(args, f"{prefix}/{name}"):
                         raise ValueError(f"Missing UCV lineage object: {prefix}/{name}")
+    if args.evaluation != "main":
+        for seed in range(3):
+            name = f"cached_parallel_structured_ucv_escher_seed_{seed}"
+            uri = f"{args.ucv_bucket}/{ANCHOR_RUN}/workers/task_{seed:03d}_{name}/checkpoints/{name}_time_24h.pkl"
+            if not object_exists(args, uri):
+                raise ValueError(f"Missing fixed audit opponent: {uri}")
+
+
+def check_pilot(args):
+    if args.evaluation != "strategic-development":
+        return
+    prefix = f"{args.bucket}/{args.pilot_run_id}/analysis/strategic-pilot"
+    success = json.loads(cloud(args, "storage", "cat", prefix + "/analysis/SUCCESS.json").stdout)
+    contract = json.loads(cloud(args, "storage", "cat", prefix + "/contract.json").stdout)
+    expected = execution_refs(args)
+    if (success.get("status") != "succeeded" or success.get("stage") != "pilot"
+            or success.get("execution_refs") != expected or contract.get("execution_refs") != expected
+            or success.get("lbr_evaluated") is not False or success.get("assessment_evaluated") is not False):
+        raise ValueError("A successful real-policy strategic pilot with identical pinned code is required")
+    import hashlib
+    digest = hashlib.sha256(json.dumps(contract, sort_keys=True, allow_nan=False).encode()).hexdigest()
+    if success.get("contract_sha256") != digest:
+        raise ValueError("Pilot contract checksum mismatch")
+    if contract["source_identity"]["source_uris"] != sorted(f"{k}={v}" for k, v in source_uris(args).items()):
+        raise ValueError("Source buckets/runs changed since pilot")
 
 
 def parse_args(argv=None):
@@ -282,6 +367,12 @@ def parse_args(argv=None):
     parser.add_argument("--ucv-source10-run-id", default=os.environ.get("UCV_SOURCE10_RUN_ID", "exp10-features-20261001-161740"))
     parser.add_argument("--vr-run-id", default=os.environ.get("VR_RUN_ID", "vr6-ray48-20261003-221425"))
     parser.add_argument("--repo-ref", default=os.environ.get("REPO_REF", ""))
+    parser.add_argument("--evaluation", choices=("main", "strategic-pilot", "strategic-development"),
+                        default=os.environ.get("EVALUATION", "main"))
+    parser.add_argument("--suite-ref", default=DEFAULT_SUITE_REF)
+    parser.add_argument("--sd-audit-ref", default=DEFAULT_SD_AUDIT_REF)
+    parser.add_argument("--pilot-run-id")
+    parser.add_argument("--pilot-reviewed", action="store_true")
     parser.add_argument("--sd-ref", default=os.environ.get("SD_REPO_REF", DEFAULT_SD_REF))
     parser.add_argument("--ucv-ref", default=os.environ.get("UCV_REPO_REF", DEFAULT_UCV_REF))
     parser.add_argument("--service-account", default=os.environ.get("SA_EMAIL",
@@ -311,6 +402,7 @@ def main(argv=None):
     if args.action == "check-sources":
         print("All source worker metadata is present.")
         return
+    check_pilot(args)
     cloud(args, "iam", "service-accounts", "describe", args.service_account)
     destination = f"{args.bucket}/{args.run_id}"
     occupied = object_exists(args, destination + "/**")

@@ -3,7 +3,10 @@
 For the **final 48-hour SD-CFR / UCV-ESCHER / VR-Deep evaluation**, see
 [the three-way evaluation guide](../experiments/fhp/retrospective_threeway_48h_evaluation/README.md).
 It is a read-only, all-cross-seed comparison of the three completed 48-hour
-cohorts, with a shared rule-agent panel and separately cost-gated LBR:
+cohorts, with a shared rule-agent panel and **no LBR**. A separate pilot-first
+strategic-position audit uses the shared suite's fixed game-state library and
+opponent panel. It does not block the head-to-head run; assessment boards stay locked.
+Use fresh run IDs after this protocol revision:
 
 ```bash
 export REPO_REF="$(git rev-parse HEAD)"
@@ -18,11 +21,18 @@ bash gcp/run_threeway_48h_evaluation.sh status
 # After smoke succeeds, use a fresh production namespace.
 export RUN_ID="fhp-threeway-48h-$(date -u '+%Y%m%d-%H%M%S')"
 bash gcp/run_threeway_48h_evaluation.sh run
+
+# Independent known-state diagnostic; review before authorising development.
+export PILOT_RUN_ID="fhp-threeway-sp-$(date -u '+%Y%m%d-%H%M%S')"
+export RUN_ID="$PILOT_RUN_ID"
+bash gcp/run_threeway_48h_evaluation.sh run --evaluation strategic-pilot
 ```
 
 The runner service account must be able to read both source buckets and write
 the VR output bucket. The guide includes source checks, dry-run, resume,
-monitoring, interpretation and compact download commands.
+monitoring, interpretation, explicit pilot-review/development commands and compact
+downloads. The strategic audit supports exact full SD-CFR mixtures, but its
+full-archive cost must be measured by the pilot; it is not an exploitability score.
 
 For **VR Experiments 1–3 evaluation**, see
 [the frozen-policy comparison guide](../experiments/fhp/retrospective_exp1_exp2_exp3_evaluation/README.md).

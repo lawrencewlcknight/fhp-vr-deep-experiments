@@ -32,7 +32,8 @@ The repository supports both released VR-Deep variants:
 
 **Final 48-hour three-way evaluation** compares SD-CFR Exp6, UCV-ESCHER Exp16
 and VR-Deep Exp6 at their prespecified 48 active-hour endpoints. It uses all
-nine cross-seed cells for each pair, shared rule-agent and LBR panels, and no
+nine cross-seed cells for each pair, a shared rule-agent panel, a separate
+pilot-first strategic-position audit (known game states), no LBR, and no
 node-matched endpoint. See the
 [protocol and cloud launch guide](experiments/fhp/retrospective_threeway_48h_evaluation/README.md).
 

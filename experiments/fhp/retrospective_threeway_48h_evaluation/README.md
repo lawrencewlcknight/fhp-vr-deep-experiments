@@ -1,7 +1,7 @@
 # Final 48-hour SD-CFR / UCV-ESCHER / VR-Deep evaluation
 
-This is a read-only retrospective evaluation of the strongest saved 48-hour
-policy cohort from each completed FHP training programme:
+Read-only evaluation of the saved 48-hour cohorts. No training, refitting,
+policy conversion, archive thinning or node matching.
 
 | Algorithm | Source run | Frozen training commit | Deployment |
 |---|---|---|---|
@@ -9,80 +9,113 @@ policy cohort from each completed FHP training programme:
 | UCV-ESCHER Exp16 | `exp16-feat48-20261004-182051` | `e66d4da515eb212e5026a965ac5c39c86144c901` | saved average-policy network |
 | VR-Deep Exp6 | `vr6-ray48-20261003-221425` | `6b95a3ecd191f02bd6972c72a3bf8514483ae02b` | saved average-policy network |
 
-No training, refitting, policy conversion, archive thinning or node matching is
-performed. UCV Exp16's continuation from Exp10 is validated. The canonical FHP
-game dictionary, source manifests, policy hashes and all SD archive chunks are
-checked before scoring.
+The canonical FHP game, source identities, policy hashes, UCV Exp10-to-Exp16
+lineage and all SD archive chunks are checked before evaluation.
 
-## Prespecified evaluation
+**Protocol v2 removes LBR entirely from this experiment**, including smoke,
+pilots, scoring and reports. The new strategic-position audit is a separate
+component, not a replacement exploitability estimate. Other experiments'
+LBR implementations are unchanged.
 
-The three co-primary endpoints are final 48-hour head-to-head values:
+## Primary: head-to-head and rule-agent matches
 
-1. SD-CFR minus UCV-ESCHER;
-2. SD-CFR minus VR-Deep;
-3. UCV-ESCHER minus VR-Deep.
+Three co-primary comparisons: SD-CFR minus UCV-ESCHER, SD-CFR minus VR-Deep,
+and UCV-ESCHER minus VR-Deep. Each has all nine training-seed cross-products
+and 100,000 duplicate deal pairs per cell: **2.7 million direct pairs**.
+Deals replay with seats swapped; corresponding comparison cells share
+chance/action streams. Positive values favour the left algorithm.
 
-Each endpoint contains all nine independent training-seed cross-products and
-100,000 duplicate deal pairs per cell: 900,000 pairs per endpoint and 2.7
-million direct pairs overall. Positive values favour the named left algorithm.
-The same chance/action streams are reused across corresponding cells of the
-three comparisons.
+All nine policies also play the same five published rule agents with 10,000
+pairs per policy-agent cell: **450,000 additional pairs**.
 
-The main stage also evaluates all nine policies against the same five published
-rule agents with 10,000 duplicate pairs per policy-agent cell (450,000 pairs).
-A separate stage evaluates Local Best Response with 1,000 duplicate pairs per
-policy and 4,096 pre-flop rollouts (9,000 pairs). LBR is a lower bound only. For
-LBR, SD-CFR uses the exact own-reach behavioural mixture required by
-counterfactual hand queries; it never exposes a sampled hidden archive member.
+Direct comparisons retain pointwise 95% crossed-seed bootstrap intervals,
+Bonferroni-compatible 98.33% intervals for the three-endpoint family and
+conditional Monte Carlo SEs. Bootstrap draws independently resample left/right
+training seeds, then average the 3×3 matrix. Rule summaries use training seeds
+as observations. Nodes and active seconds are descriptive only.
 
-The three direct comparisons receive:
+The smoke now contains **72 tasks**, two pairs each, covering every direct and
+rule-agent cell; it has **no LBR tasks**. Finite-statistic validation stays strict.
+Main scoring requires a fresh timing pilot whose twofold-margin estimate fits
+22 hours. Its Batch cap is 26 hours; standalone smoke has a two-hour cap.
+Caps are safety limits, not forecasts. Smoke results are not strength evidence.
 
-- pointwise 95% crossed training-seed bootstrap intervals;
-- Bonferroni-compatible 98.33% family intervals for the three-endpoint family;
-- conditional duplicate-play Monte Carlo standard errors.
+## Diagnostic: strategic-position audit
 
-Bootstrap draws independently resample the three left and three right training
-seeds, then average the resulting 3×3 matrix. Rule-agent and LBR summaries use
-the three training seeds as the observations. Nodes and active seconds are
-reported descriptively; they are not used for matching or normalization.
+Uses the existing shared `fhp-evaluation-suite` strategic audit, pinned to
+`edd0ae45a58ee275eab297fbeca3497e50908c78`. The SD audit adapter is pinned to
+`b670d99968d49f33744eed4a76640057e43c15b8` for batched full-mixture queries.
+This changes neither trained policies nor the primary match loader. Native
+families run in separate processes; vendored packages cannot shadow the suite.
 
-## Cloud resources and safety gates
+| Stage | Candidates (48h only) | Core boards | Reference pairs per opponent | Batch cap |
+|---|---|---|---|---|
+| Strategic pilot | Seed 0 of each algorithm | 8 development | 8 | 6 hours |
+| Strategic development | All three seeds of each algorithm | 64 development | 64 | 24 hours |
 
-One `n2-standard-16` VM with a 200 GB balanced disk downloads only deployable
-policies, immutable SD archive chunks and validation metadata. It runs:
+The pilot tests correctness and feasibility on **real full-size SD archives**,
+not a reduced-model approximation. SD cost is still uncertain. Development
+requires a successful pilot with identical pinned code and explicit user review;
+it never launches automatically. Audit jobs are independent of the match jobs.
 
-1. a real-policy smoke covering every direct cell, rule-agent cell and LBR
-   target;
-2. fresh timing pilots on the actual VM;
-3. main scoring only if its twofold-margin projection fits a 22-hour cap;
-4. LBR only after the main `SUCCESS.json` is durable, and only if its independent
-   twofold-margin projection fits a 10-hour cap.
+The library seed (`20261006`), panel and reference policy match the existing
+Exp16 strategic audit:
 
-Each LBR smoke target uses two duplicate pairs and 16 pre-flop rollouts. Two
-pairs are the minimum for defined sample variance and uncertainty fields;
-one-pair shards are rejected before loading policies. Result hashing and JSON
-serialization continue to reject NaN and infinity. Smoke outcomes are only
-functional checks, not strength evidence; production budgets are unchanged.
+- Five corrected published rule agents plus the three frozen Exp9 24h policies
+  from `exp9-cache24-20261001-132550`, with pinned checkpoint hashes.
+- Exp9 seed 0 generates the same reference-position distribution for every candidate.
+- Both seats, all seven legal preflop entry histories, reachable final-round
+  decisions and all 1,176 private hands per board; exact compatible-hand and
+  remaining-round integration, including blockers and ties.
+- Tilt 0 is primary; -2/+2 are separately labelled synthetic range sensitivity checks.
+- **All 32 assessment boards stay locked**, including in reference sampling.
+  The launcher provides no assessment mode; development is diagnostic evidence.
 
-VM setup uses bounded apt retries (up to 30 attempts per command, with a
-10-second dpkg-lock wait and 10 seconds between failures) to tolerate unattended
-upgrade contention without removing locks or killing the updater.
+The detailed shared report covers provable errors such as folding an unbeatable
+hand at a terminal call/fold decision, range-conditioned errors, local decision
+gaps, remaining-round response gaps, pot odds, hand/board/history categories and
+concrete high-gap positions. It does not assume that strong hands must always
+raise or weak hands must always fold.
 
-The Batch wall limit is 36 hours, Batch task retries are disabled, results are written
-atomically, and partial shards are uploaded every five minutes. `resume` checks
-the complete scientific identity before reusing any shard. A timing deferral is
-recorded in `STATUS.json` and must not be interpreted as an evaluation result.
+The cross-algorithm report focuses on **remaining-round root response gap**:
+foregone value against a fixed opponent relative to an optimal remaining
+continuation. Opponents receive equal weights **within each seed first**, followed
+by seed means and descriptive SEs. Matching seed integers across algorithms are
+not paired experiments. Common board/root support is checked before comparison.
+No position-level pseudo-replication or combined winner score is used.
 
-## Permissions
+Audit values are **BB per audited decision/root**, not mbb per whole-game hand.
+They are neither LBR nor whole-game exploitability, and cannot establish
+equilibrium convergence. The reference sample is supplementary and small.
+Exact-value, native/batched parity, hidden-card privacy, card-order and
+suit-invariance checks must pass. SD uses **all** historical networks with exact
+own-reach weights; it cannot substitute a sampled archive member.
 
-The runner needs `roles/storage.objectViewer` on the SD-CFR and UCV-ESCHER
-source buckets and `roles/storage.objectAdmin` on the VR-Deep output bucket.
-It also needs the normal Batch agent and logging permissions documented in
-[`docs/GCP_BATCH_EXPERIMENTS.md`](../../../docs/GCP_BATCH_EXPERIMENTS.md).
+## Resources, provenance and recovery
+
+Every component uses one `n2-standard-16` CPU VM, a 200 GB disk and no automatic
+Batch retries. Audit workers use four inference threads and a 52,000 MiB
+process-tree RSS cap. Per-export/analysis watchdog caps are three hours in pilot
+and 21 hours in development; the whole-job caps above also apply.
+
+Partial outputs upload every five minutes. Data uploads precede board-cache
+markers, followed by final success markers. A missing final marker means
+**incomplete**, even if Batch succeeds after a main timing deferral.
+Audit failures retain worker diagnostics and completed board caches.
+
+Resume requires identical code, inputs, runtime and execution settings. The
+audit hashes every SD chunk. After a byte-identical download on a new VM it
+restores only local staging-file timestamps from the original manifest, keeping
+the shared cache identity stable. Cloud training artifacts are never modified.
+
+**Use fresh namespaces for this revision.** Do not resume
+`fhp-threeway-48h-20261007-231524` or
+`fhp-threeway-smoke-20261008-002547` with the new protocol. Their partial smoke
+outputs are retained, not relabelled as successful.
 
 ## Launch
 
-From this repository root, commit and push the evaluator first, then set:
+From this repository root, commit and push the new evaluator before cloud use:
 
 ```bash
 export PROJECT_ID="clever-overview-399515"
@@ -95,76 +128,82 @@ export SA_EMAIL="fhp-vr-deep-runner@${PROJECT_ID}.iam.gserviceaccount.com"
 export REPO_REF="$(git rev-parse HEAD)"
 ```
 
-The exact source run IDs and loader refs are frozen defaults. Check all source
-objects without submitting a VM:
+The runner needs source-bucket reads (including Exp9 in the UCV bucket), VR
+output-bucket writes, and normal Batch/logging permissions. No IAM bindings are
+changed automatically. Native loader and suite refs are frozen defaults.
 
-```bash
-export RUN_ID="fhp-threeway-check"
-bash gcp/run_threeway_48h_evaluation.sh check-sources
-```
-
-Run a standalone smoke in a disposable namespace:
+### Primary match evaluation
 
 ```bash
 export RUN_ID="fhp-threeway-smoke-$(date -u '+%Y%m%d-%H%M%S')"
-bash gcp/run_threeway_48h_evaluation.sh smoke-only
+bash gcp/run_threeway_48h_evaluation.sh check-sources --evaluation main
+bash gcp/run_threeway_48h_evaluation.sh smoke-only --evaluation main
 bash gcp/run_threeway_48h_evaluation.sh status
-```
 
-After it succeeds, submit the production evaluation with a fresh ID:
-
-```bash
+# After smoke succeeds, use a fresh production namespace.
 export RUN_ID="fhp-threeway-48h-$(date -u '+%Y%m%d-%H%M%S')"
-bash gcp/run_threeway_48h_evaluation.sh run
+bash gcp/run_threeway_48h_evaluation.sh run --evaluation main
+```
+
+### Strategic pilot (separate job)
+
+```bash
+export PILOT_RUN_ID="fhp-threeway-sp-$(date -u '+%Y%m%d-%H%M%S')"
+export RUN_ID="$PILOT_RUN_ID"
+bash gcp/run_threeway_48h_evaluation.sh check-sources --evaluation strategic-pilot
+bash gcp/run_threeway_48h_evaluation.sh run --evaluation strategic-pilot
 bash gcp/run_threeway_48h_evaluation.sh status
 ```
 
-Resume an interrupted or safely deferred namespace with unchanged code and
-sources:
+Review runtime, export checks, coverage and concrete decision cases. If full SD
+export is not feasible, do not launch development or silently drop SD-CFR:
+retain the primary comparison and revisit the audit budget.
+
+### Strategic development (only after pilot review)
+
+Keep all code refs identical to the successful pilot. The review flag is your
+explicit acknowledgement, not permission inferred by a job.
 
 ```bash
-export RUN_ID="the-existing-run-id"
-export REPO_REF="the-original-full-evaluator-commit"
-bash gcp/run_threeway_48h_evaluation.sh resume
+export RUN_ID="fhp-threeway-sd-$(date -u '+%Y%m%d-%H%M%S')"
+bash gcp/run_threeway_48h_evaluation.sh run \
+  --evaluation strategic-development \
+  --pilot-run-id "$PILOT_RUN_ID" --pilot-reviewed
 ```
 
-The two-pair smoke repair changes the evaluator's code fingerprint. Do not
-resume `fhp-threeway-48h-20261007-231524` with the repaired code: it contains only
-partial smoke outputs, not production results. After committing and pushing the
-repair, use its full `REPO_REF` with fresh smoke and production IDs as above;
-retain the frozen SD/UCV loader refs and all trained source runs.
+Prepare any request locally without cloud calls by replacing `run` with
+`dry-run --output /tmp/fhp-threeway-job.json`. After an interrupted attempt
+stops, use `resume` with the original run ID, component, code refs and (for
+development) pilot flags. Never run two writers for the same namespace.
 
-Prepare and inspect the exact Batch request without cloud calls:
+## Reports and completion
 
-```bash
-python gcp/threeway_48h_evaluation_batch.py dry-run \
-  --run-id fhp-threeway-dry-run \
-  --repo-ref "$REPO_REF" \
-  --output /tmp/fhp-threeway-job.json
-```
+Primary outputs: `$BUCKET/$RUN_ID/analysis/main/`, including
+`analysis_summary.md`, `summary.json`, `matchups.csv`,
+`direct_comparison_summary.csv`, `rule_agent_summary.csv`,
+`final_48h_head_to_head.png`, `timing_pilot.json`, `STATUS.json`, `SUCCESS.json`.
 
-## Outputs
+Audit outputs: `$BUCKET/$RUN_ID/analysis/strategic-pilot/analysis/` or
+`.../strategic-development/analysis/`:
 
-Main results are under `$BUCKET/$RUN_ID/analysis/main/`:
+- `threeway_report.html` / `threeway_summary.json`: cross-algorithm root-gap comparison;
+- `report.html` / `summary.json`: shared-suite detailed positions and diagnostics;
+- `runtime_summary.json`: worker timings and peak memory;
+- `SUCCESS.json`: checksummed completion, explicitly excluding LBR/assessment.
 
-- `analysis_summary.md` — concise primary comparison table;
-- `summary.json` — complete interpretation and caveats;
-- `matchups.csv` — 27 direct cells and 45 rule-agent cells;
-- `direct_comparison_summary.csv` — co-primary estimates and intervals;
-- `rule_agent_summary.csv` — three-seed rule-agent summaries;
-- `final_48h_head_to_head.png` — the three 3×3 matrices;
-- `timing_pilot.json`, `STATUS.json`, `SUCCESS.json` and resumable task shards.
+The stage root retains `contract.json`, `manifest.json`, `STATUS.json`, the
+shared `status.json`, worker logs and resumable tables/board results. A complete
+primary run does not imply that the separate strategic audit is complete.
 
-LBR outputs, when the independent gate passes, are under
-`$BUCKET/$RUN_ID/analysis/lbr/`. Download the compact analysis without task
-shards:
+Compact download excluding large caches and individual match shards:
 
 ```bash
 mkdir -p "cloud_outputs/$RUN_ID/analysis"
 gcloud storage rsync --recursive \
-  --exclude='.*task_results/.*' \
+  --exclude='.*(task_results|tables|board_results|workers)/.*' \
   "$BUCKET/$RUN_ID/analysis" \
   "cloud_outputs/$RUN_ID/analysis"
 ```
 
-Inspect `main/STATUS.json` and `lbr/STATUS.json` before drawing conclusions.
+Unit tests and control policies do not establish trained-model runtime or
+playing strength. Cloud execution and pilot review remain separate steps.
