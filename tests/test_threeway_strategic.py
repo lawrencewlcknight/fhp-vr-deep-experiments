@@ -122,7 +122,7 @@ def test_development_requires_explicit_review_and_matching_pilot(monkeypatch):
     args = batch_args(evaluation="strategic-development", pilot_reviewed=True, pilot_run_id="pilot-frozen")
     BATCH.validate(args)
     refs = BATCH.execution_refs(args)
-    contract = dict(execution_refs=refs, source_identity=dict(
+    contract = dict(protocol=s.PROTOCOL, board_exports=s.export_resources("pilot"), execution_refs=refs, source_identity=dict(
         source_uris=sorted(f"{k}={v}" for k, v in BATCH.source_uris(args).items())))
     success = dict(status="succeeded", stage="pilot", execution_refs=refs,
                    lbr_evaluated=False, assessment_evaluated=False, contract_sha256=s.digest(contract))
@@ -157,7 +157,8 @@ def test_generated_refs_are_valid_json(tmp_path):
     assert json.loads((tmp_path / "execution_refs.json").read_text()) == BATCH.execution_refs(args)
 
 
-def test_wrapper_uses_shared_workflow_and_checks_completed_report(records, tmp_path, suite, monkeypatch):
+@pytest.mark.parametrize("outcome", ["complete", "deferred", "failed"])
+def test_wrapper_uses_shared_workflow_and_checks_completed_report(records, tmp_path, suite, monkeypatch, outcome):
     from fhp_evaluation.strategic_audit import workflow, validation
     from fhp_evaluation.best_response.runner import write_json
     refs = BATCH.execution_refs(batch_args())
@@ -175,6 +176,11 @@ def test_wrapper_uses_shared_workflow_and_checks_completed_report(records, tmp_p
     calls = []
     def fake_run(spec, library, output, **kwargs):
         calls.append(kwargs)
+        if outcome == "deferred":
+            from fhp_evaluation.strategic_audit.board_export import AuditDeferred
+            raise AuditDeferred("fixture session budget")
+        if outcome == "failed":
+            raise RuntimeError("fixture invalid policy")
         assert spec == candidate_spec
         assert len([b for b in library["boards"] if b["partition"] == "development"]) == 8
         result = fake_result("pilot")
@@ -192,9 +198,21 @@ def test_wrapper_uses_shared_workflow_and_checks_completed_report(records, tmp_p
             "--execution-refs", str(tmp_path / "refs.json"), "--suite-repo", str(suite),
             "--sd-repo", str(tmp_path), "--ucv-repo", str(tmp_path), "--vr-repo", str(tmp_path),
             "--anchor-root", str(tmp_path), "--output", str(output)]
-    s.main(argv)
+    if outcome == "failed":
+        with pytest.raises(RuntimeError, match="invalid policy"):
+            s.main(argv)
+    else:
+        s.main(argv)
     assert calls == [dict(partition="development", include_reference=True, unlock_assessment=False,
-                          resume=False, threads=4, max_seconds=10800, max_rss_mb=52000)]
+                          resume=False, threads=4, max_seconds=10800, max_rss_mb=52000,
+                          board_exports=s.export_resources("pilot"))]
+    if outcome != "complete":
+        status = s.read(output / "STATUS.json")
+        assert status["status"] == ("deferred_time_budget" if outcome == "deferred" else "incomplete")
+        assert not (output / "analysis/SUCCESS.json").exists()
+        with pytest.raises(ValueError, match="Changed strategic contract"):
+            s.main(argv + ["--export-workers", "2"])
+        return
     assert s.read(output / "analysis/SUCCESS.json")["status"] == "succeeded"
     s.main(argv)
     assert len(calls) == 1
@@ -217,3 +235,45 @@ def test_archive_resume_restores_stamps_only_for_identical_chunks(tmp_path, suit
     chunk.write_bytes(b"tampered")
     with pytest.raises(ValueError, match="Changed archive"):
         s.restore_archive_stamps(tmp_path, spec)
+
+
+@pytest.mark.parametrize("workers", [1, 2, 4])
+def test_cloud_worker_resources_are_explicit(workers):
+    args = batch_args(evaluation="strategic-pilot", strategic_export_workers=workers)
+    BATCH.validate(args)
+    assert f"--export-workers {workers}" in BATCH.worker_script(args, smoke=False)
+    resources = s.export_resources("pilot", workers)
+    assert resources["workers"] * 4 <= resources["cpu_limit"] == 16
+    assert resources["session_seconds"] == 16200
+    with pytest.raises(ValueError):
+        BATCH.validate(batch_args(strategic_export_workers=8))
+
+
+def test_preflight_refuses_legacy_or_changed_strategic_resume(monkeypatch):
+    args = batch_args(evaluation="strategic-pilot", resume=True)
+    contract = dict(protocol=s.PROTOCOL, stage="pilot", execution_refs=BATCH.execution_refs(args),
+                    board_exports=s.export_resources("pilot"),
+                    source_identity=dict(source_uris=sorted(f"{k}={v}" for k, v in BATCH.source_uris(args).items())))
+    monkeypatch.setattr(BATCH, "cloud", lambda *a, **k: SimpleNamespace(stdout=json.dumps(contract)))
+    BATCH.check_strategic_resume(args)
+    for name, value in (("protocol", "fhp_threeway_48h_strategic_v1"),
+                        ("board_exports", s.export_resources("pilot", 2)),
+                        ("execution_refs", {}), ("stage", "development"), ("source_identity", {})):
+        original = contract[name]
+        contract[name] = value
+        with pytest.raises(ValueError, match="fresh RUN_ID"):
+            BATCH.check_strategic_resume(args)
+        contract[name] = original
+
+
+def test_pilot_gate_rejects_changed_parallelism(monkeypatch):
+    args = batch_args(evaluation="strategic-development", pilot_reviewed=True, pilot_run_id="pilot-frozen")
+    refs = BATCH.execution_refs(args)
+    contract = dict(protocol=s.PROTOCOL, execution_refs=refs, board_exports=s.export_resources("pilot", 2),
+                    source_identity=dict(source_uris=sorted(f"{k}={v}" for k, v in BATCH.source_uris(args).items())))
+    success = dict(status="succeeded", stage="pilot", execution_refs=refs,
+                   lbr_evaluated=False, assessment_evaluated=False, contract_sha256=s.digest(contract))
+    monkeypatch.setattr(BATCH, "cloud", lambda _a, *c, **k:
+                        SimpleNamespace(stdout=json.dumps(success if c[-1].endswith("SUCCESS.json") else contract)))
+    with pytest.raises(ValueError, match="same board-export"):
+        BATCH.check_pilot(args)

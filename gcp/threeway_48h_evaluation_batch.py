@@ -16,7 +16,7 @@ VR_REPO = "https://github.com/lawrencewlcknight/fhp-vr-deep-experiments.git"
 SD_REPO = "https://github.com/lawrencewlcknight/fhp-deep-cfr-experiments.git"
 UCV_REPO = "https://github.com/lawrencewlcknight/fhp-ucv-escher-experiments.git"
 SUITE_REPO = "https://github.com/lawrencewlcknight/fhp-evaluation-suite.git"
-DEFAULT_SUITE_REF = "edd0ae45a58ee275eab297fbeca3497e50908c78"
+DEFAULT_SUITE_REF = "43817a0adf6cefbd1734d2080bb58cbfdc379bc0"
 DEFAULT_SD_AUDIT_REF = "b670d99968d49f33744eed4a76640057e43c15b8"
 ANCHOR_RUN = "exp9-cache24-20261001-132550"
 DEFAULT_SD_REF = "bb689252d6b322adb3de6102d095a49c3ed87250"
@@ -53,6 +53,8 @@ def validate(args):
         raise ValueError("Set the Batch runner service-account email")
     if args.evaluation not in ("main", "strategic-pilot", "strategic-development"):
         raise ValueError("Unknown evaluation component")
+    if getattr(args, "strategic_export_workers", 4) not in (1, 2, 4):
+        raise ValueError("Use 1, 2 or 4 strategic export workers (four threads each)")
     if args.evaluation == "strategic-development":
         if not args.pilot_reviewed or not re.fullmatch(r"[a-z][a-z0-9-]{0,33}[a-z0-9]", args.pilot_run_id or ""):
             raise ValueError("Development requires --pilot-run-id and --pilot-reviewed")
@@ -121,6 +123,7 @@ cd "$WORK/evaluation-suite"
 export PYTHONPATH="$WORK/evaluation-suite"
 "$WORK/venv/bin/python" "$VR_REPOSITORY/experiments/fhp/retrospective_threeway_48h_evaluation/strategic.py" \\
   --stage {q(args.evaluation.removeprefix('strategic-'))} \\
+  --export-workers {getattr(args, 'strategic_export_workers', 4)} \\
   --sources "$OUTPUT/strategic_sources.json" --execution-refs "$OUTPUT/execution_refs.json" \\
   --suite-repo "$WORK/evaluation-suite" --sd-repo "$WORK/sd-audit-repository" \\
   --ucv-repo "$UCV_REPOSITORY" --vr-repo "$VR_REPOSITORY" --anchor-root "$INPUT/anchors" \\
@@ -350,6 +353,26 @@ def check_pilot(args):
         raise ValueError("Pilot contract checksum mismatch")
     if contract["source_identity"]["source_uris"] != sorted(f"{k}={v}" for k, v in source_uris(args).items()):
         raise ValueError("Source buckets/runs changed since pilot")
+    from experiments.fhp.retrospective_threeway_48h_evaluation.strategic import PROTOCOL, export_resources
+    if (contract.get("protocol") != PROTOCOL or contract.get("board_exports") !=
+            export_resources("pilot", getattr(args, "strategic_export_workers", 4))):
+        raise ValueError("Pilot must use the same board-export worker/resource configuration")
+
+
+def check_strategic_resume(args):
+    """Reject incompatible old exports before paying for another VM/download."""
+    if not args.resume or args.evaluation == "main":
+        return
+    from experiments.fhp.retrospective_threeway_48h_evaluation.strategic import PROTOCOL, export_resources
+    uri = f"{args.bucket}/{args.run_id}/analysis/{args.evaluation}/contract.json"
+    contract = json.loads(cloud(args, "storage", "cat", uri).stdout)
+    stage = args.evaluation.removeprefix("strategic-")
+    if (contract.get("protocol") != PROTOCOL or contract.get("stage") != stage or
+            contract.get("execution_refs") != execution_refs(args) or
+            contract.get("board_exports") != export_resources(stage, getattr(args, "strategic_export_workers", 4)) or
+            contract.get("source_identity", {}).get("source_uris") !=
+            sorted(f"{k}={v}" for k, v in source_uris(args).items())):
+        raise ValueError("Changed/legacy strategic contract: use a fresh RUN_ID; do not relabel old caches")
 
 
 def parse_args(argv=None):
@@ -370,6 +393,8 @@ def parse_args(argv=None):
     parser.add_argument("--evaluation", choices=("main", "strategic-pilot", "strategic-development"),
                         default=os.environ.get("EVALUATION", "main"))
     parser.add_argument("--suite-ref", default=DEFAULT_SUITE_REF)
+    parser.add_argument("--strategic-export-workers", type=int, choices=(1, 2, 4), default=4,
+                        help="Four computation threads per board worker; frozen on resume")
     parser.add_argument("--sd-audit-ref", default=DEFAULT_SD_AUDIT_REF)
     parser.add_argument("--pilot-run-id")
     parser.add_argument("--pilot-reviewed", action="store_true")
@@ -391,6 +416,10 @@ def main(argv=None):
     if args.action == "status":
         print(cloud(args, "batch", "jobs", "list", "--location", args.region,
                     "--filter", f"labels.workload=fhp-threeway-48h AND labels.run={args.run_id}").stdout)
+        if args.evaluation != "main":
+            uri = f"{args.bucket}/{args.run_id}/analysis/{args.evaluation}/STATUS.json"
+            result = cloud(args, "storage", "cat", uri, check=False)
+            print(result.stdout if result.returncode == 0 else "Audit status not yet available; Batch state alone is not completion.")
         return
     if args.action == "dry-run":
         if not args.output:
@@ -398,6 +427,7 @@ def main(argv=None):
         args.output.write_text(json.dumps(job_config(args), indent=2) + "\n")
         print(f"Wrote {args.output}; no cloud calls or jobs submitted")
         return
+    check_strategic_resume(args)
     check_sources(args)
     if args.action == "check-sources":
         print("All source worker metadata is present.")

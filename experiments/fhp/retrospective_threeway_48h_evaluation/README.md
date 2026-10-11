@@ -42,8 +42,8 @@ Caps are safety limits, not forecasts. Smoke results are not strength evidence.
 
 ## Diagnostic: strategic-position audit
 
-Uses the existing shared `fhp-evaluation-suite` strategic audit, pinned to
-`edd0ae45a58ee275eab297fbeca3497e50908c78`. The SD audit adapter is pinned to
+Uses the shared `fhp-evaluation-suite` strategic audit at the exact
+`DEFAULT_SUITE_REF` pinned in the Batch launcher. The SD audit adapter remains pinned to
 `b670d99968d49f33744eed4a76640057e43c15b8` for batched full-mixture queries.
 This changes neither trained policies nor the primary match loader. Native
 families run in separate processes; vendored packages cannot shadow the suite.
@@ -94,9 +94,49 @@ own-reach weights; it cannot substitute a sampled archive member.
 ## Resources, provenance and recovery
 
 Every component uses one `n2-standard-16` CPU VM, a 200 GB disk and no automatic
-Batch retries. Audit workers use four inference threads and a 52,000 MiB
-process-tree RSS cap. Per-export/analysis watchdog caps are three hours in pilot
-and 21 hours in development; the whole-job caps above also apply.
+Batch retries. The revised strategic executor uses **four concurrent board
+workers, each with four inference threads** (16 inference threads in total).
+Each worker receives one policy/board task and retains every SD-CFR historical
+network. It has a two-hour timeout and a 13,000 MiB process-tree RSS cap; the
+sum of concurrent limits is 52,000 MiB, leaving coordinator/OS headroom in the
+62,000 MiB allocation. Numerical analysis runs separately with four threads
+and a 52,000 MiB cap.
+
+An invocation has a **4.5-hour pilot / 21-hour development** budget shared by
+export and numerical analysis. Analysis is additionally capped at three hours
+in pilot. A new wave is not started when the remaining budget is shorter than
+the slowest completed task of a comparable policy family plus 20% (bounded by
+the per-task cap). Six-/24-hour
+Batch caps remain unchanged, including setup/upload headroom. These are bounds,
+not completion forecasts; completion may require multiple explicitly requested
+resume jobs. No job launches another job.
+
+### October 2026 timeout repair
+
+The old `fhp-threeway-sp-20261010-215643` pilot stopped after three hours in
+SD-CFR export: three of **16 boards** completed (eight core plus eight
+reference-deal boards), taking roughly 41--59 minutes each. Completed boards
+passed their checks; peak worker RSS was about 737 MiB. This was a per-policy
+runtime limit, not a numerical or memory failure.
+
+The new execution contract is `fhp_threeway_48h_strategic_v2_board_exports`.
+SD-CFR board tasks run first, so the most expensive workload is measured first.
+`export_progress.json` and `export_segments/attempt_*/progress.json` record
+completed/remaining counts, per-task times, first-wave and later-wave throughput,
+and memory bounds. The first wave is a real full-archive throughput benchmark,
+**not** a controlled serial-speedup estimate. For explicit allocation comparisons,
+use fresh pilot namespaces with `--strategic-export-workers 1`, `2`, or `4`;
+default `4`. Worker count is frozen on resume and must match the reviewed pilot
+for development. Timings do not change the board panel, opponents, numerical
+checks or scoring, and do not establish playing strength.
+
+Completed board caches are checksum-verified and skipped on resume. Expiration
+of the invocation budget records `deferred_time_budget`, uploads progress and
+exits cleanly **without** final analysis `SUCCESS.json`. Thus Batch `SUCCEEDED`
+can mean a completed segment, not a completed audit. An individual board
+timeout, memory failure, invalid output or numerical exception remains a failure;
+it is not silently accepted or automatically retried. Worker logs are now in
+`workers/<policy>/<board>/attempt_*/`; analysis retains `workers/analysis/attempt_*/`.
 
 Partial outputs upload every five minutes. Data uploads precede board-cache
 markers, followed by final success markers. A missing final marker means
@@ -110,8 +150,12 @@ the shared cache identity stable. Cloud training artifacts are never modified.
 
 **Use fresh namespaces for this revision.** Do not resume
 `fhp-threeway-48h-20261007-231524` or
-`fhp-threeway-smoke-20261008-002547` with the new protocol. Their partial smoke
-outputs are retained, not relabelled as successful.
+`fhp-threeway-smoke-20261008-002547` with the new protocol. In particular,
+**do not resume `fhp-threeway-sp-20261010-215643` with the revised executor**.
+Its partial outputs are preserved; changed evaluator fingerprints must not be
+relabelled as the new experiment. The launcher rejects a legacy or changed
+strategic resume contract before starting another VM. Subsequent segments of a
+new-protocol run can reuse its own verified caches with identical code/settings.
 
 ## Launch
 
@@ -152,8 +196,20 @@ export PILOT_RUN_ID="fhp-threeway-sp-$(date -u '+%Y%m%d-%H%M%S')"
 export RUN_ID="$PILOT_RUN_ID"
 bash gcp/run_threeway_48h_evaluation.sh check-sources --evaluation strategic-pilot
 bash gcp/run_threeway_48h_evaluation.sh run --evaluation strategic-pilot
-bash gcp/run_threeway_48h_evaluation.sh status
+bash gcp/run_threeway_48h_evaluation.sh status --evaluation strategic-pilot
 ```
+
+Inspect both Batch and audit completion. If `STATUS.json` reports
+`deferred_time_budget`, wait for the current Batch segment to stop, then retain
+the **same new-protocol RUN_ID, REPO_REF and worker setting**:
+
+```bash
+gcloud storage cat "$BUCKET/$RUN_ID/analysis/strategic-pilot/STATUS.json"
+bash gcp/run_threeway_48h_evaluation.sh resume --evaluation strategic-pilot
+```
+
+Review failed board logs before resuming a genuine failure. Changing worker
+count, source, code or other frozen settings requires a fresh namespace.
 
 Review runtime, export checks, coverage and concrete decision cases. If full SD
 export is not feasible, do not launch development or silently drop SD-CFR:
@@ -192,7 +248,9 @@ Audit outputs: `$BUCKET/$RUN_ID/analysis/strategic-pilot/analysis/` or
 - `SUCCESS.json`: checksummed completion, explicitly excluding LBR/assessment.
 
 The stage root retains `contract.json`, `manifest.json`, `STATUS.json`, the
-shared `status.json`, worker logs and resumable tables/board results. A complete
+shared `status.json`, export timing/progress segments, worker logs and resumable
+tables/board results. Only final checksummed `analysis/SUCCESS.json` confirms
+completion; `deferred_time_budget` is incomplete. A complete
 primary run does not imply that the separate strategic audit is complete.
 
 Compact download excluding large caches and individual match shards:

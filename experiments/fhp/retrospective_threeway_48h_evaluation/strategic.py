@@ -18,7 +18,14 @@ import subprocess
 ALGORITHMS = ("sd", "ucv", "vr")
 LABELS = {"sd": "SD-CFR Exp6", "ucv": "UCV-ESCHER Exp16", "vr": "VR-Deep Exp6"}
 FAMILIES = {"sd": "sd_cfr", "ucv": "ucv", "vr": "vr_deep"}
-PROTOCOL = "fhp_threeway_48h_strategic_v1"
+PROTOCOL = "fhp_threeway_48h_strategic_v2_board_exports"
+
+
+def export_resources(stage, workers=4):
+    if stage not in ("pilot", "development") or workers not in (1, 2, 4):
+        raise ValueError("Use pilot/development and 1, 2 or 4 export workers")
+    return dict(workers=workers, task_seconds=7200,
+                session_seconds=16200 if stage == "pilot" else 75600, cpu_limit=16)
 
 
 def read(path):
@@ -167,6 +174,7 @@ def restore_archive_stamps(directory, spec):
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--stage", choices=("pilot", "development"), required=True)
+    parser.add_argument("--export-workers", type=int, choices=(1, 2, 4), default=4)
     for name in ("sources", "suite-repo", "sd-repo", "ucv-repo", "vr-repo", "anchor-root", "output", "execution-refs"):
         parser.add_argument("--" + name, type=Path, required=True)
     args = parser.parse_args(argv)
@@ -179,6 +187,7 @@ def main(argv=None):
     from fhp_evaluation.strategic_audit.library import build_library
     from fhp_evaluation.strategic_audit.validation import validate
     from fhp_evaluation.strategic_audit.workflow import run, validate_spec
+    from fhp_evaluation.strategic_audit.board_export import AuditDeferred
     source = read(args.sources)
     # Source validation ran in the isolated match-runner process before this one.
     portable = lambda rows: [{k: v for k, v in row.items() if k != "path"} for row in rows]
@@ -196,8 +205,10 @@ def main(argv=None):
     validate_spec(spec)  # All candidate and anchor hashes checked before pickle loading.
     library = build_library(LIBRARY_SEED, pilot=args.stage == "pilot",
                             reference_deals=8 if args.stage == "pilot" else 64)
+    resources = export_resources(args.stage, args.export_workers)
     contract = dict(protocol=PROTOCOL, stage=args.stage, source_identity=source["identity"],
                     execution_refs=refs, spec=spec, library=library, threads=4,
+                    board_exports=resources,
                     wrapper_sha256=sha256_file(__file__), lbr_evaluated=False, assessment_evaluated=False)
     output = args.output
     output.mkdir(parents=True, exist_ok=True)
@@ -218,19 +229,28 @@ def main(argv=None):
         restore_archive_stamps(output, spec)
         result_path = run(spec, library, output, partition="development", include_reference=True,
                           unlock_assessment=False, resume=(output / "manifest.json").exists(), threads=4,
-                          max_seconds=10800 if args.stage == "pilot" else 75600, max_rss_mb=52000)
+                          max_seconds=10800 if args.stage == "pilot" else 75600, max_rss_mb=52000,
+                          board_exports=resources)
         write_comparison(output / "analysis", read(result_path), args.stage)
-        attempts = {str(p.relative_to(output)): read(p) for p in (output / "workers").glob("*/attempt_*/run.json")}
+        attempts = {str(p.relative_to(output)): read(p) for p in (output / "workers").glob("**/attempt_*/run.json")}
         write_json(output / "analysis/runtime_summary.json", dict(attempts={k: {field: v.get(field)
             for field in ("status", "elapsed_seconds", "peak_rss_bytes")} for k, v in attempts.items()},
-            note="Caps are safety limits, not runtime forecasts; profile full SD-CFR archives before development."))
+            board_exports=resources,
+            export_segments=[read(p) for p in sorted((output / "export_segments").glob("attempt_*/progress.json"))],
+            note="First-wave timings benchmark real full-archive throughput, not serial speedup. "
+                 "Caps are safety limits; completion may require identical-code resume segments."))
         files = {p.name: sha256_file(p) for p in (output / "analysis").iterdir() if p.is_file()}
         write_json(output / "STATUS.json", dict(status="complete", stage=args.stage))
         write_json(marker, dict(status="succeeded", stage=args.stage, contract_sha256=digest(contract),
                                execution_refs=refs, assessment_evaluated=False, lbr_evaluated=False, files=files))
+    except AuditDeferred as error:
+        write_json(output / "STATUS.json", dict(status="deferred_time_budget", stage=args.stage,
+                   message=str(error), complete=False,
+                   detail="No complete comparison published. Resume this new-protocol run with identical code/settings."))
+        print(f"Audit incomplete: {error}", flush=True)
     except BaseException as error:
         write_json(output / "STATUS.json", dict(status="incomplete", stage=args.stage,
-                   message=str(error), detail="See status.json and workers/*/attempt_*/ logs; no complete comparison published."))
+                   message=str(error), detail="See status.json and workers/<policy>/<board>/attempt_*/ logs; no complete comparison published."))
         raise
 
 
