@@ -50,7 +50,7 @@ families run in separate processes; vendored packages cannot shadow the suite.
 
 | Stage | Candidates (48h only) | Core boards | Reference pairs per opponent | Batch cap |
 |---|---|---|---|---|
-| Strategic pilot | Seed 0 of each algorithm | 8 development | 8 | 6 hours |
+| Strategic pilot | Seed 0 of each algorithm | 8 development | 8 | 12 hours (up to two segments) |
 | Strategic development | All three seeds of each algorithm | 64 development | 64 | 24 hours |
 
 The pilot tests correctness and feasibility on **real full-size SD archives**,
@@ -106,10 +106,20 @@ An invocation has a **4.5-hour pilot / 21-hour development** budget shared by
 export and numerical analysis. Analysis is additionally capped at three hours
 in pilot. A new wave is not started when the remaining budget is shorter than
 the slowest completed task of a comparable policy family plus 20% (bounded by
-the per-task cap). Six-/24-hour
-Batch caps remain unchanged, including setup/upload headroom. These are bounds,
-not completion forecasts; completion may require multiple explicitly requested
-resume jobs. No job launches another job.
+the per-task cap).
+
+The launcher now permits **two pilot invocations sequentially on the same VM**,
+with a **12-hour Batch ceiling** (nine hours of invocation budgets plus
+setup/upload headroom). It stops immediately on successful completion. Only a
+clean `deferred_time_budget` outcome starts the next segment automatically;
+genuine errors are not retried. This preserves the original 4.5-hour frozen
+cache contract and reuses verified boards without another download or manual
+initiation. `--strategic-pilot-segments 1` restores a single invocation and a
+six-hour Batch ceiling. Exhausting the allowed segments exits nonzero (75),
+saves progress and still requires an explicit resume. Development remains one
+21-hour invocation in a 24-hour job. No job launches another job, increases
+worker count, or changes the evaluation workload. These are safety limits, not
+predicted runtimes; unused time is not deliberately consumed.
 
 ### October 2026 timeout repair
 
@@ -199,8 +209,9 @@ bash gcp/run_threeway_48h_evaluation.sh run --evaluation strategic-pilot
 bash gcp/run_threeway_48h_evaluation.sh status --evaluation strategic-pilot
 ```
 
-Inspect both Batch and audit completion. If `STATUS.json` reports
-`deferred_time_budget`, wait for the current Batch segment to stop, then retain
+Inspect both Batch and audit completion. A `deferred_time_budget` status between
+segments is transient while the same job continues. If the entire Batch job
+stops without the final `analysis/SUCCESS.json`, retain
 the **same new-protocol RUN_ID, REPO_REF and worker setting**:
 
 ```bash
@@ -208,8 +219,33 @@ gcloud storage cat "$BUCKET/$RUN_ID/analysis/strategic-pilot/STATUS.json"
 bash gcp/run_threeway_48h_evaluation.sh resume --evaluation strategic-pilot
 ```
 
+For the existing `fhp-threeway-sp-20261011-092916` pilot, use the updated
+launcher **after committing and pushing it**, but keep the evaluator at its
+original commit. `LAUNCHER_REF` selects only the job builder; it does not change
+any checkout or execution ref in the frozen evaluator contract:
+
+```bash
+export RUN_ID="fhp-threeway-sp-20261011-092916"
+export LAUNCHER_REF="$(git rev-parse HEAD)"  # pushed commit containing this launcher update
+export REPO_REF="18fe77b97d0ad1e7f8176fe91eca39787431fd14"
+bash gcp/run_threeway_48h_evaluation.sh resume --evaluation strategic-pilot \
+  --strategic-pilot-segments 2 --strategic-export-workers 4 \
+  --suite-ref 43817a0adf6cefbd1734d2080bb58cbfdc379bc0 \
+  --sd-audit-ref b670d99968d49f33744eed4a76640057e43c15b8 \
+  --sd-ref bb689252d6b322adb3de6102d095a49c3ed87250 \
+  --ucv-ref cf04f1a710e7b947da9fc1c41ae0159c420c72eb
+```
+
+Keep the original project, buckets and service account from the setup above.
+Do not replace `REPO_REF` with the new launcher commit or edit old manifests to
+force cache acceptance. With `LAUNCHER_REF` unset, the shell wrapper defaults to
+the launcher at `REPO_REF`; the old commit retains the old six-hour behaviour.
+Unset `LAUNCHER_REF` when returning to an unrelated fresh-run configuration.
+`analysis/strategic_pilot_budget.json` records the launcher hash, time allowance
+and original execution refs; the per-segment export reports retain timings.
+
 Review failed board logs before resuming a genuine failure. Changing worker
-count, source, code or other frozen settings requires a fresh namespace.
+count, source, evaluator code or other frozen settings requires a fresh namespace.
 
 Review runtime, export checks, coverage and concrete decision cases. If full SD
 export is not feasible, do not launch development or silently drop SD-CFR:

@@ -34,6 +34,14 @@ monitoring, interpretation, explicit pilot-review/development commands and compa
 downloads. The strategic audit supports exact full SD-CFR mixtures, but its
 full-archive cost must be measured by the pilot; it is not an exploitability score.
 
+The updated strategic-pilot launcher allows **up to two unchanged 4.5-hour
+segments in one 12-hour Batch job**, stopping early on completion. Clean budget
+deferrals continue automatically on the same VM; actual errors do not. To reuse
+the existing `fhp-threeway-sp-20261011-092916` caches, keep its original
+`REPO_REF` and select the newly pushed scheduler with `LAUNCHER_REF`, as shown in
+[the pilot resume instructions](../experiments/fhp/retrospective_threeway_48h_evaluation/README.md#strategic-pilot-separate-job).
+Changing the frozen evaluator ref or manifest would invalidate those caches.
+
 For **VR Experiments 1–3 evaluation**, see
 [the frozen-policy comparison guide](../experiments/fhp/retrospective_exp1_exp2_exp3_evaluation/README.md).
 From this repo root, with the usual variables and the VR results bucket:

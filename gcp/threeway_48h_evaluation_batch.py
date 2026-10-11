@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import argparse
 from datetime import datetime, timezone
+import hashlib
+import importlib.util
 import json
 import os
 from pathlib import Path
@@ -55,6 +57,8 @@ def validate(args):
         raise ValueError("Unknown evaluation component")
     if getattr(args, "strategic_export_workers", 4) not in (1, 2, 4):
         raise ValueError("Use 1, 2 or 4 strategic export workers (four threads each)")
+    if getattr(args, "strategic_pilot_segments", 2) not in (1, 2):
+        raise ValueError("Use one or two strategic pilot segments per Batch job")
     if args.evaluation == "strategic-development":
         if not args.pilot_reviewed or not re.fullmatch(r"[a-z][a-z0-9-]{0,33}[a-z0-9]", args.pilot_run_id or ""):
             raise ValueError("Development requires --pilot-run-id and --pilot-reviewed")
@@ -97,6 +101,56 @@ apt_with_retry install -y -qq git curl ca-certificates util-linux
 '''
 
 
+def pilot_segments_script(args, command):
+    """Extend wall-clock headroom without changing the frozen evaluator contract.
+
+    Re-enter only after a clean time-budget deferral. Each invocation verifies
+    the original manifest and cached boards itself; no cache is relabelled.
+    Genuine errors stop immediately, and no additional cloud job is submitted.
+    """
+    segments = getattr(args, "strategic_pilot_segments", 2)
+    budget = dict(max_segments=segments, session_seconds_per_segment=16200,
+                  total_session_seconds=segments * 16200, batch_seconds=segments * 21600,
+                  launcher_sha256=hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                  execution_refs=execution_refs(args),
+                  note="Launcher-only allowance. Frozen evaluator, resource contract and caches are unchanged.")
+    return f'''printf '%s\\n' {q(json.dumps(budget, sort_keys=True))} > "$OUTPUT/strategic_pilot_budget.json"
+for ((pilot_segment=1; pilot_segment<={segments}; pilot_segment++)); do
+  echo "Strategic pilot segment $pilot_segment/{segments}; reusing verified completed boards"
+{command}
+  pilot_outcome="$("$WORK/venv/bin/python" - "$OUTPUT/strategic-pilot" <<'PY'
+import json
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+marker = root / "analysis/SUCCESS.json"
+if marker.exists():
+    success = json.loads(marker.read_text())
+    if success.get("status") != "succeeded" or success.get("stage") != "pilot":
+        raise SystemExit("Invalid strategic pilot success marker; not continuing")
+    print("complete")
+else:
+    status = json.loads((root / "STATUS.json").read_text())
+    if (status.get("status") != "deferred_time_budget" or status.get("stage") != "pilot"
+            or status.get("complete") is not False):
+        raise SystemExit("Pilot stopped without success or a clean budget deferral; not continuing")
+    print("deferred")
+PY
+)"
+  if [[ "$pilot_outcome" == complete ]]; then
+    echo "Strategic pilot complete after $pilot_segment segment(s)"
+    break
+  fi
+  (sync_outputs) 9>"$WORK/upload.lock"
+  if [[ "$pilot_segment" -eq {segments} ]]; then
+    echo "Pilot still incomplete after {segments} segment(s); verified progress saved for explicit resume" >&2
+    exit 75
+  fi
+  echo "Clean time-budget deferral; continuing automatically on this VM"
+done
+'''
+
+
 def worker_script(args, *, smoke):
     sources = source_uris(args)
     resume = "1" if args.resume else "0"
@@ -117,11 +171,7 @@ for seed in 0 1 2; do
 done
 '''
     if audit:
-        scoring = f'''"$WORK/venv/bin/python" -m {MODULE} prepare-strategic "${{ARGS[@]}}"
-# Keep the suite and each native family isolated from the match runner's imports.
-cd "$WORK/evaluation-suite"
-export PYTHONPATH="$WORK/evaluation-suite"
-"$WORK/venv/bin/python" "$VR_REPOSITORY/experiments/fhp/retrospective_threeway_48h_evaluation/strategic.py" \\
+        audit_command = f'''"$WORK/venv/bin/python" "$VR_REPOSITORY/experiments/fhp/retrospective_threeway_48h_evaluation/strategic.py" \\
   --stage {q(args.evaluation.removeprefix('strategic-'))} \\
   --export-workers {getattr(args, 'strategic_export_workers', 4)} \\
   --sources "$OUTPUT/strategic_sources.json" --execution-refs "$OUTPUT/execution_refs.json" \\
@@ -129,6 +179,13 @@ export PYTHONPATH="$WORK/evaluation-suite"
   --ucv-repo "$UCV_REPOSITORY" --vr-repo "$VR_REPOSITORY" --anchor-root "$INPUT/anchors" \\
   --output "$OUTPUT/{args.evaluation}"
 '''
+        scoring = f'''"$WORK/venv/bin/python" -m {MODULE} prepare-strategic "${{ARGS[@]}}"
+# Keep the suite and each native family isolated from the match runner's imports.
+cd "$WORK/evaluation-suite"
+export PYTHONPATH="$WORK/evaluation-suite"
+'''
+        scoring += (pilot_segments_script(args, audit_command)
+                    if args.evaluation == "strategic-pilot" else audit_command)
     else:
         scoring = f'''"$WORK/venv/bin/python" -m {MODULE} smoke "${{ARGS[@]}}" --max-hours 1
 (sync_outputs) 9>"$WORK/upload.lock"
@@ -265,7 +322,8 @@ upload_outputs
 
 
 def job_config(args, *, smoke=False):
-    seconds = 7200 if smoke else {"main": 26*3600, "strategic-pilot": 6*3600,
+    seconds = 7200 if smoke else {"main": 26*3600,
+                                 "strategic-pilot": 6*3600*getattr(args, "strategic_pilot_segments", 2),
                                  "strategic-development": 24*3600}[args.evaluation]
     environment = dict(variables={"DESTINATION": f"{args.bucket}/{args.run_id}"})
     return dict(taskGroups=[dict(taskCount=1, parallelism=1, taskSpec=dict(
@@ -336,6 +394,18 @@ def check_sources(args):
                 raise ValueError(f"Missing fixed audit opponent: {uri}")
 
 
+def strategic_contract_module():
+    # The shell stages this from REPO_REF, independently of LAUNCHER_REF. Avoid
+    # importing an unrelated installed/current-checkout experiments package.
+    path = Path(__file__).with_name("strategic_contract.py")
+    if not path.exists():  # Direct invocation from a repository checkout/tests.
+        path = Path(__file__).resolve().parents[1] / "experiments/fhp/retrospective_threeway_48h_evaluation/strategic.py"
+    spec = importlib.util.spec_from_file_location("threeway_frozen_strategic_contract", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def check_pilot(args):
     if args.evaluation != "strategic-development":
         return
@@ -353,9 +423,9 @@ def check_pilot(args):
         raise ValueError("Pilot contract checksum mismatch")
     if contract["source_identity"]["source_uris"] != sorted(f"{k}={v}" for k, v in source_uris(args).items()):
         raise ValueError("Source buckets/runs changed since pilot")
-    from experiments.fhp.retrospective_threeway_48h_evaluation.strategic import PROTOCOL, export_resources
-    if (contract.get("protocol") != PROTOCOL or contract.get("board_exports") !=
-            export_resources("pilot", getattr(args, "strategic_export_workers", 4))):
+    frozen = strategic_contract_module()
+    if (contract.get("protocol") != frozen.PROTOCOL or contract.get("board_exports") !=
+            frozen.export_resources("pilot", getattr(args, "strategic_export_workers", 4))):
         raise ValueError("Pilot must use the same board-export worker/resource configuration")
 
 
@@ -363,13 +433,13 @@ def check_strategic_resume(args):
     """Reject incompatible old exports before paying for another VM/download."""
     if not args.resume or args.evaluation == "main":
         return
-    from experiments.fhp.retrospective_threeway_48h_evaluation.strategic import PROTOCOL, export_resources
+    frozen = strategic_contract_module()
     uri = f"{args.bucket}/{args.run_id}/analysis/{args.evaluation}/contract.json"
     contract = json.loads(cloud(args, "storage", "cat", uri).stdout)
     stage = args.evaluation.removeprefix("strategic-")
-    if (contract.get("protocol") != PROTOCOL or contract.get("stage") != stage or
+    if (contract.get("protocol") != frozen.PROTOCOL or contract.get("stage") != stage or
             contract.get("execution_refs") != execution_refs(args) or
-            contract.get("board_exports") != export_resources(stage, getattr(args, "strategic_export_workers", 4)) or
+            contract.get("board_exports") != frozen.export_resources(stage, getattr(args, "strategic_export_workers", 4)) or
             contract.get("source_identity", {}).get("source_uris") !=
             sorted(f"{k}={v}" for k, v in source_uris(args).items())):
         raise ValueError("Changed/legacy strategic contract: use a fresh RUN_ID; do not relabel old caches")
@@ -395,6 +465,8 @@ def parse_args(argv=None):
     parser.add_argument("--suite-ref", default=DEFAULT_SUITE_REF)
     parser.add_argument("--strategic-export-workers", type=int, choices=(1, 2, 4), default=4,
                         help="Four computation threads per board worker; frozen on resume")
+    parser.add_argument("--strategic-pilot-segments", type=int, choices=(1, 2), default=2,
+                        help="Pilot only: up to two unchanged 4.5h invocations in one 12h Batch job; stop on success")
     parser.add_argument("--sd-audit-ref", default=DEFAULT_SD_AUDIT_REF)
     parser.add_argument("--pilot-run-id")
     parser.add_argument("--pilot-reviewed", action="store_true")

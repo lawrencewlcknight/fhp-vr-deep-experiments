@@ -1,9 +1,11 @@
 """Offline integration guards. No trained checkpoint or paid cloud job is used."""
 
 import json
+import os
 from pathlib import Path
 import re
 import subprocess
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -94,7 +96,7 @@ def test_refuse_incomplete_or_different_support():
         s.summarise(result, "development")
 
 
-@pytest.mark.parametrize("component,hours", [("strategic-pilot", 6), ("strategic-development", 24)])
+@pytest.mark.parametrize("component,hours", [("strategic-pilot", 12), ("strategic-development", 24)])
 def test_audit_cloud_job_is_isolated_bounded_and_shell_valid(tmp_path, component, hours):
     args = batch_args(evaluation=component, pilot_reviewed=component.endswith("development"),
                       pilot_run_id="fhp-threeway-audit-pilot" if component.endswith("development") else None)
@@ -277,3 +279,152 @@ def test_pilot_gate_rejects_changed_parallelism(monkeypatch):
                         SimpleNamespace(stdout=json.dumps(success if c[-1].endswith("SUCCESS.json") else contract)))
     with pytest.raises(ValueError, match="same board-export"):
         BATCH.check_pilot(args)
+
+
+@pytest.mark.parametrize("segments,hours", [(1, 6), (2, 12)])
+def test_pilot_budget_extends_job_without_changing_cache_contract(segments, hours):
+    args = batch_args(evaluation="strategic-pilot", resume=True, strategic_pilot_segments=segments,
+                      repo_ref="18fe77b97d0ad1e7f8176fe91eca39787431fd14")
+    BATCH.validate(args)
+    task = BATCH.job_config(args)["taskGroups"][0]["taskSpec"]
+    assert task["maxRunDuration"] == f"{hours*3600}s"
+    assert task["runnables"][0]["timeout"] == f"{hours*3600-1500}s"
+    script = task["runnables"][0]["script"]["text"]
+    assert f'git -C "$VR_REPOSITORY" checkout --detach {args.repo_ref}' in script
+    assert script.count("prepare-strategic") == 1
+    assert "session_seconds_per_segment" in script
+    assert "--session-seconds" not in script
+    assert s.export_resources("pilot") == dict(workers=4, task_seconds=7200,
+                                               session_seconds=16200, cpu_limit=16)
+    assert BATCH.execution_refs(args)["repo_ref"] == args.repo_ref
+
+
+@pytest.mark.parametrize("outcomes,segments,expected_calls,exit_code", [
+    (["complete"], 2, 1, 0),
+    (["deferred", "complete"], 2, 2, 0),
+    (["deferred", "deferred"], 2, 2, 75),
+    (["deferred"], 1, 1, 75),
+    (["failure", "complete"], 2, 1, 23),
+    (["incomplete", "complete"], 2, 1, 1),
+    (["malformed", "complete"], 2, 1, 1),
+    (["invalid_marker", "complete"], 2, 1, 1),
+])
+def test_pilot_continuation_only_after_clean_deferral(tmp_path, outcomes, segments, expected_calls, exit_code):
+    # Exercise the actual generated shell loop, without trained policies/cloud.
+    # The unchanged policy runner owns cache verification, represented here by
+    # a sentinel which must survive every invocation and a deterministic result.
+    output = tmp_path / "output"
+    root = output / "strategic-pilot"
+    root.mkdir(parents=True)
+    sentinel = root / "cached_board.npz"
+    sentinel.write_bytes(b"verified-existing-board")
+    work = tmp_path / "work"
+    (work / "venv/bin").mkdir(parents=True)
+    (work / "venv/bin/python").symlink_to(sys.executable)
+    code = f'''
+import json
+from pathlib import Path
+import sys
+root = Path(sys.argv[1])
+assert (root / "cached_board.npz").read_bytes() == b"verified-existing-board"
+counter = root / "calls.json"
+count = json.loads(counter.read_text()) if counter.exists() else 0
+counter.write_text(json.dumps(count + 1))
+outcome = {outcomes!r}[count]
+if outcome == "failure":
+    raise SystemExit(23)
+if outcome in ("complete", "invalid_marker"):
+    (root / "analysis").mkdir(exist_ok=True)
+    (root / "analysis/SUCCESS.json").write_text(json.dumps(dict(
+        status="succeeded" if outcome == "complete" else "invalid", stage="pilot")))
+elif outcome == "malformed":
+    (root / "STATUS.json").write_text("invalid json")
+else:
+    (root / "STATUS.json").write_text(json.dumps(dict(
+        status="deferred_time_budget" if outcome == "deferred" else "incomplete",
+        stage="pilot", complete=False)))
+'''
+    command = f'{BATCH.q(sys.executable)} -c {BATCH.q(code)} "$OUTPUT/strategic-pilot"\n'
+    args = batch_args(evaluation="strategic-pilot", strategic_pilot_segments=segments)
+    script = "set -Eeuo pipefail\nsync_outputs() { echo synced; }\n" + BATCH.pilot_segments_script(args, command)
+    result = subprocess.run(["bash"], input=script, text=True, capture_output=True,
+                            env=dict(os.environ, WORK=str(work), OUTPUT=str(output)))
+    assert result.returncode == exit_code, result.stderr
+    assert json.loads((root / "calls.json").read_text()) == expected_calls
+    assert sentinel.read_bytes() == b"verified-existing-board"
+    budget = json.loads((output / "strategic_pilot_budget.json").read_text())
+    assert budget["total_session_seconds"] == segments * 16200
+    assert budget["batch_seconds"] == segments * 21600
+    assert budget["execution_refs"] == BATCH.execution_refs(args)
+    if expected_calls == 2:
+        assert "synced" in result.stdout
+
+
+def test_pilot_segment_option_is_bounded_and_defaults_to_two():
+    argv = ["dry-run", "--project", "test-project", "--run-id", "test-pilot",
+            "--repo-ref", "a"*40, "--evaluation", "strategic-pilot"]
+    _, args = BATCH.parse_args(argv)
+    assert args.strategic_pilot_segments == 2
+    _, args = BATCH.parse_args(argv + ["--strategic-pilot-segments", "1"])
+    assert args.strategic_pilot_segments == 1
+    with pytest.raises(SystemExit):
+        BATCH.parse_args(argv + ["--strategic-pilot-segments", "3"])
+    with pytest.raises(ValueError, match="one or two"):
+        BATCH.validate(batch_args(strategic_pilot_segments=3))
+
+
+def test_shell_can_pin_new_launcher_separately_from_original_evaluator(tmp_path):
+    source = Path(__file__).resolve().parents[1]
+    repo = tmp_path / "fixture checkout"
+    (repo / "gcp").mkdir(parents=True)
+    script = repo / "gcp/run_threeway_48h_evaluation.sh"
+    script.write_text((source / "gcp/run_threeway_48h_evaluation.sh").read_text())
+    builder = repo / "gcp/threeway_48h_evaluation_batch.py"
+    builder.write_text('print("original launcher")\n')
+    evaluator = repo / "experiments/fhp/retrospective_threeway_48h_evaluation/run.py"
+    evaluator.parent.mkdir(parents=True)
+    evaluator.write_text("# Original frozen evaluator fixture\n")
+    evaluator.with_name("strategic.py").write_text(
+        (source / "experiments/fhp/retrospective_threeway_48h_evaluation/strategic.py").read_text())
+    def git(*args):
+        return subprocess.run(["git", "-C", str(repo), *args], check=True, capture_output=True,
+                              text=True).stdout.strip()
+    git("init", "--quiet")
+    git("config", "user.name", "Test Fixture")
+    git("config", "user.email", "fixture@example.invalid")
+    git("add", ".")
+    git("-c", "commit.gpgsign=false", "commit", "--quiet", "-m", "Original evaluator")
+    original = git("rev-parse", "HEAD")
+    builder.write_text((source / "gcp/threeway_48h_evaluation_batch.py").read_text())
+    git("add", ".")
+    git("-c", "commit.gpgsign=false", "commit", "--quiet", "-m", "Scheduling only")
+    launcher = git("rev-parse", "HEAD")
+    env = dict(os.environ, REPO_REF=original, LAUNCHER_REF=launcher, PYTHON=sys.executable)
+    path = tmp_path / "job.json"
+    command = ["bash", str(script), "dry-run", "--project", "test-project", "--run-id", "test-pilot",
+               "--evaluation", "strategic-pilot", "--output", str(path)]
+    subprocess.run(command, env=env, check=True, capture_output=True, text=True)
+    task = json.loads(path.read_text())["taskGroups"][0]["taskSpec"]
+    assert task["maxRunDuration"] == "43200s"
+    worker = task["runnables"][0]["script"]["text"]
+    assert f'git -C "$VR_REPOSITORY" checkout --detach {original}' in worker
+    assert launcher not in worker  # No evaluator/source checkout is silently upgraded.
+    env.pop("LAUNCHER_REF")
+    result = subprocess.run(command, env=env, check=True, capture_output=True, text=True)
+    assert result.stdout.strip() == "original launcher"
+    env["LAUNCHER_REF"] = "main"
+    result = subprocess.run(command, env=env, capture_output=True, text=True)
+    assert result.returncode == 2 and "full pushed commit SHA" in result.stderr
+
+
+def test_preflight_loads_original_contract_staged_next_to_launcher(tmp_path, monkeypatch):
+    # The scheduler may advance but protocol/resource checks must remain frozen.
+    (tmp_path / "strategic_contract.py").write_text('''
+PROTOCOL = "original-protocol-fixture"
+def export_resources(stage, workers=4):
+    return dict(stage=stage, workers=workers, session_seconds=16200)
+''')
+    monkeypatch.setattr(BATCH, "__file__", str(tmp_path / "builder.py"))
+    module = BATCH.strategic_contract_module()
+    assert module.PROTOCOL == "original-protocol-fixture"
+    assert module.export_resources("pilot", 4) == dict(stage="pilot", workers=4, session_seconds=16200)
