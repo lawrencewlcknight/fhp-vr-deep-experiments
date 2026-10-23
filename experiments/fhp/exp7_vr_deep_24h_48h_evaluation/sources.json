@@ -1,0 +1,217 @@
+{
+  "protocol": "vr_exp7_sources_v1",
+  "records": [
+    {
+      "id": "vr_s0_24h",
+      "family": "vr_deep",
+      "cohort": "vr",
+      "experiment": "exp6",
+      "seed": 0,
+      "hours": 24,
+      "source_run": "vr6-ray48-20261003-221425",
+      "relative": "workers/task_000_lossless_vr_deep_pdcfr_plus_ray8_48h_seed_0/checkpoints/lossless_vr_deep_pdcfr_plus_ray8_48h_seed_0_time_24h.pt",
+      "sha256": "5987afb5116d6d6e609b6ba64434130ba03ecd463d458505d7a435a3b20c9197",
+      "size_bytes": 88941,
+      "nodes": 157083424,
+      "iteration": 774,
+      "active_seconds": 86444.864972126,
+      "source_commit": "6b95a3ecd191f02bd6972c72a3bf8514483ae02b"
+    },
+    {
+      "id": "vr_s0_48h",
+      "family": "vr_deep",
+      "cohort": "vr",
+      "experiment": "exp6",
+      "seed": 0,
+      "hours": 48,
+      "source_run": "vr6-ray48-20261003-221425",
+      "relative": "workers/task_000_lossless_vr_deep_pdcfr_plus_ray8_48h_seed_0/checkpoints/lossless_vr_deep_pdcfr_plus_ray8_48h_seed_0_time_48h.pt",
+      "sha256": "00a198cc35f4da5a815e8bfa4e4ecc02f393eb69db7021fc20d4a189f9bd8185",
+      "size_bytes": 88941,
+      "nodes": 315480052,
+      "iteration": 1558,
+      "active_seconds": 172814.88329445999,
+      "source_commit": "6b95a3ecd191f02bd6972c72a3bf8514483ae02b"
+    },
+    {
+      "id": "vr_s1_24h",
+      "family": "vr_deep",
+      "cohort": "vr",
+      "experiment": "exp6",
+      "seed": 1,
+      "hours": 24,
+      "source_run": "vr6-ray48-20261003-221425",
+      "relative": "workers/task_001_lossless_vr_deep_pdcfr_plus_ray8_48h_seed_1/checkpoints/lossless_vr_deep_pdcfr_plus_ray8_48h_seed_1_time_24h.pt",
+      "sha256": "11e5872884ef157d2bfb89729e2347729d763fc12a4126afbe75edb97d522457",
+      "size_bytes": 88941,
+      "nodes": 171042536,
+      "iteration": 838,
+      "active_seconds": 86468.244366943,
+      "source_commit": "6b95a3ecd191f02bd6972c72a3bf8514483ae02b"
+    },
+    {
+      "id": "vr_s1_48h",
+      "family": "vr_deep",
+      "cohort": "vr",
+      "experiment": "exp6",
+      "seed": 1,
+      "hours": 48,
+      "source_run": "vr6-ray48-20261003-221425",
+      "relative": "workers/task_001_lossless_vr_deep_pdcfr_plus_ray8_48h_seed_1/checkpoints/lossless_vr_deep_pdcfr_plus_ray8_48h_seed_1_time_48h.pt",
+      "sha256": "9532be3b52b51f56585685f3617d392d4de18774e25480cca02b42dbac303630",
+      "size_bytes": 88941,
+      "nodes": 342140735,
+      "iteration": 1672,
+      "active_seconds": 172890.94299431203,
+      "source_commit": "6b95a3ecd191f02bd6972c72a3bf8514483ae02b"
+    },
+    {
+      "id": "vr_s2_24h",
+      "family": "vr_deep",
+      "cohort": "vr",
+      "experiment": "exp6",
+      "seed": 2,
+      "hours": 24,
+      "source_run": "vr6-ray48-20261003-221425",
+      "relative": "workers/task_002_lossless_vr_deep_pdcfr_plus_ray8_48h_seed_2/checkpoints/lossless_vr_deep_pdcfr_plus_ray8_48h_seed_2_time_24h.pt",
+      "sha256": "06b4e3b52c45e35aef3593ab329e6173c00adb9b7e9d335cda13c06c8de7f18a",
+      "size_bytes": 88941,
+      "nodes": 163603223,
+      "iteration": 809,
+      "active_seconds": 86408.438203804,
+      "source_commit": "6b95a3ecd191f02bd6972c72a3bf8514483ae02b"
+    },
+    {
+      "id": "vr_s2_48h",
+      "family": "vr_deep",
+      "cohort": "vr",
+      "experiment": "exp6",
+      "seed": 2,
+      "hours": 48,
+      "source_run": "vr6-ray48-20261003-221425",
+      "relative": "workers/task_002_lossless_vr_deep_pdcfr_plus_ray8_48h_seed_2/checkpoints/lossless_vr_deep_pdcfr_plus_ray8_48h_seed_2_time_48h.pt",
+      "sha256": "2fcc7616ac1d1e0fe0c1f6494ab3d1178a5a654cfa0e457f70018bf5525279f5",
+      "size_bytes": 88941,
+      "nodes": 325340743,
+      "iteration": 1608,
+      "active_seconds": 172824.14486566297,
+      "source_commit": "6b95a3ecd191f02bd6972c72a3bf8514483ae02b"
+    },
+    {
+      "id": "ucv_s0_48h",
+      "family": "ucv",
+      "cohort": "ucv",
+      "experiment": "exp38",
+      "seed": 0,
+      "hours": 48,
+      "source_run": "exp38-rich48-20261019-230016",
+      "relative": "workers/task_000_strategic_ae_critic2500_ucv_escher_seed_0/checkpoints/strategic_ae_critic2500_ucv_escher_seed_0_time_48h.pkl",
+      "sha256": "d9c0ac74948c016e67a12faa79f943f17d0a65b8814411dab4668d3a25439870",
+      "size_bytes": 316787,
+      "nodes": 487877509,
+      "iteration": 2071,
+      "active_seconds": 172808.62923952797,
+      "source_commit": "6ab85bbcd03627281e411243419d64ce9e9236d5",
+      "metadata_sha256": {
+        "SUCCESS.json": "7805d2c90dc56150a0257af134cd896d439984d1de5654af45508e759b177973",
+        "checkpoint_manifest.json": "b75616b3a4452d4443b31d90dab932f30b1f8fd55f15fb81f9d67cb5e7d48ec1",
+        "run_manifest.json": "15a8cff1c22dc4b6e73e7037341daa0f320630c9974c1b3f9ea9cd6543d21d66",
+        "runtime_manifest.json": "f850dc3f02208641ec1fe0c5615290a82476c8e5c9a84ea4f45e91eaa6f827a7",
+        "summary.json": "1d6530df19360179ef0f725c69d5bf96c2428cacae70c288a53d0f8ed9957fe0"
+      }
+    },
+    {
+      "id": "ucv_s1_48h",
+      "family": "ucv",
+      "cohort": "ucv",
+      "experiment": "exp38",
+      "seed": 1,
+      "hours": 48,
+      "source_run": "exp38-rich48-20261019-230016",
+      "relative": "workers/task_001_strategic_ae_critic2500_ucv_escher_seed_1/checkpoints/strategic_ae_critic2500_ucv_escher_seed_1_time_48h.pkl",
+      "sha256": "04473fb555e7067e93eb696aea890ada210c98d793a0d5bd393b0ac28c50405c",
+      "size_bytes": 316787,
+      "nodes": 447100015,
+      "iteration": 1892,
+      "active_seconds": 172826.422056765,
+      "source_commit": "6ab85bbcd03627281e411243419d64ce9e9236d5",
+      "metadata_sha256": {
+        "SUCCESS.json": "ac673720818fe581c4962c11fc9a645e00b321e98131a0972df1b9e4dff87cac",
+        "checkpoint_manifest.json": "57eed685c3f818fc46c0238ea77f1a6207bfc61c3a963b9797439c44ffceee60",
+        "run_manifest.json": "314f1f5f4b3cab54f01bebc1f605c36030e1f27ddb8e31adc0b9f4e642dfb61d",
+        "runtime_manifest.json": "f850dc3f02208641ec1fe0c5615290a82476c8e5c9a84ea4f45e91eaa6f827a7",
+        "summary.json": "3026ed05914fee1f33b25208668f4b21f0b443e7357655edfdd08f851c5b5e44"
+      }
+    },
+    {
+      "id": "ucv_s2_48h",
+      "family": "ucv",
+      "cohort": "ucv",
+      "experiment": "exp38",
+      "seed": 2,
+      "hours": 48,
+      "source_run": "exp38-rich48-20261019-230016",
+      "relative": "workers/task_002_strategic_ae_critic2500_ucv_escher_seed_2/checkpoints/strategic_ae_critic2500_ucv_escher_seed_2_time_48h.pkl",
+      "sha256": "148f3574c715383633733d3e7ae5b2a3ac5136f309081121a350b7669518b2c6",
+      "size_bytes": 316787,
+      "nodes": 474101175,
+      "iteration": 2006,
+      "active_seconds": 172839.552662675,
+      "source_commit": "6ab85bbcd03627281e411243419d64ce9e9236d5",
+      "metadata_sha256": {
+        "SUCCESS.json": "3f2d17c158bdd55b1fce8a46769474209c887fd44928624c3b4214455a52637b",
+        "checkpoint_manifest.json": "f6ba69328034246b89550b971a88cf5606c17268d5535f67407442083a977848",
+        "run_manifest.json": "a0938af47b6515b39fe65f58c693dc5bb0c290a029bc3455fcaf032104308693",
+        "runtime_manifest.json": "f850dc3f02208641ec1fe0c5615290a82476c8e5c9a84ea4f45e91eaa6f827a7",
+        "summary.json": "d4ca060a60a5ba27515c7cebdd58ea04a85af22b30f7d8852148bff83df1870b"
+      }
+    },
+    {
+      "id": "exp9_seed0_24h",
+      "family": "ucv",
+      "cohort": "anchor",
+      "experiment": "exp9",
+      "seed": 0,
+      "hours": 24,
+      "source_run": "exp9-cache24-20261001-132550",
+      "relative": "workers/task_000_cached_parallel_structured_ucv_escher_seed_0/checkpoints/cached_parallel_structured_ucv_escher_seed_0_time_24h.pkl",
+      "sha256": "9328bb5e0e59ecb4aa43dbbf5211098d0a3efe1371e4bfb0dc7684449648e449"
+    },
+    {
+      "id": "exp9_seed1_24h",
+      "family": "ucv",
+      "cohort": "anchor",
+      "experiment": "exp9",
+      "seed": 1,
+      "hours": 24,
+      "source_run": "exp9-cache24-20261001-132550",
+      "relative": "workers/task_001_cached_parallel_structured_ucv_escher_seed_1/checkpoints/cached_parallel_structured_ucv_escher_seed_1_time_24h.pkl",
+      "sha256": "ef5f0db716bd2652cd06817ff0b4d4b6e5d1307c5063b982c69b768d1b3b7caa"
+    },
+    {
+      "id": "exp9_seed2_24h",
+      "family": "ucv",
+      "cohort": "anchor",
+      "experiment": "exp9",
+      "seed": 2,
+      "hours": 24,
+      "source_run": "exp9-cache24-20261001-132550",
+      "relative": "workers/task_002_cached_parallel_structured_ucv_escher_seed_2/checkpoints/cached_parallel_structured_ucv_escher_seed_2_time_24h.pkl",
+      "sha256": "d678f805ad9c9665545ba91164a9129c5bb60fab09c90b8478cbcaa35b9def7b"
+    }
+  ],
+  "provenance": [
+    {
+      "path": "fhp_vr_deep/fhp-vr-deep-experiments/cloud_outputs/vr6-ray48-20261003-221425/analysis/snapshot_inventory.json",
+      "sha256": "c2477e495f8611172051e5d274d6381b943fa2c0bf449a063a8f6f7ee3c10efc"
+    },
+    {
+      "path": "fhp_ucv_escher/fhp-ucv-escher-experiments/cloud_outputs/exp40-threeway48-20261022-172933/analysis/evaluation_manifest.json",
+      "sha256": "264f9aa003c81091500cdfb7945a90d80db53284eacabeb20f77a1baafe41eb5"
+    }
+  ],
+  "vr_analysis_hashes": {
+    "summary.json": "41bd89da1488827e3f7942696284be3953f871412d34172ade5f33fd57a4b225",
+    "snapshot_inventory.json": "c2477e495f8611172051e5d274d6381b943fa2c0bf449a063a8f6f7ee3c10efc"
+  }
+}

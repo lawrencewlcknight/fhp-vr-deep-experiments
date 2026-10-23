@@ -1,5 +1,20 @@
 # Running the FHP VR-Deep experiments on Google Cloud Batch
 
+For **Experiment 7: VR-Deep 24h versus 48h evaluation**, use the
+[complete launch, smoke and recovery guide](../experiments/fhp/exp7_vr_deep_24h_48h_evaluation/README.md).
+With the usual project, region, bucket and service-account variables set:
+
+```bash
+export RUN_ID="vr7-eval2448-$(date -u +%Y%m%d-%H%M%S)"
+bash gcp/run_exp7_duration_evaluation.sh run
+```
+
+One submission starts two parallel n2-standard-16 tasks, each with an integrated
+smoke check. No training and no SD-CFR. Experiment 6's 24/48h checkpoints receive
+gameplay/LBR and strategic evaluation; final UCV policies receive strategic
+evaluation only. The account must read both source buckets. Recovery uses the
+original frozen source bundle, the same RUN_ID, and the `resume` action.
+
 For the **final 48-hour SD-CFR / UCV-ESCHER / VR-Deep evaluation**, see
 [the three-way evaluation guide](../experiments/fhp/retrospective_threeway_48h_evaluation/README.md).
 It is a read-only, all-cross-seed comparison of the three completed 48-hour

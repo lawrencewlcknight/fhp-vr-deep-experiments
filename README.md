@@ -30,6 +30,13 @@ The repository supports both released VR-Deep variants:
 
 ## Current status
 
+**Experiment 7: VR-Deep 24h versus 48h evaluation** compares all three paired
+Experiment 6 trajectories using head-to-head play, rule agents, LBR and a
+remaining-round strategic audit. Final UCV Experiment 38 policies are included
+only on common strategic positions; SD-CFR is excluded. One Batch submission
+runs two resumable CPU tasks. See
+[the protocol and launch guide](experiments/fhp/exp7_vr_deep_24h_48h_evaluation/README.md).
+
 **Final 48-hour three-way evaluation** compares SD-CFR Exp6, UCV-ESCHER Exp16
 and VR-Deep Exp6 at their prespecified 48 active-hour endpoints. It uses all
 nine cross-seed cells for each pair, a shared rule-agent panel, a separate
