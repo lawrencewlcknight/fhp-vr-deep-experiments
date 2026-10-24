@@ -141,3 +141,10 @@ the upstream licensing caveat are in `vr_deep_cfr/UPSTREAM.md`.
 Compare Experiments 1–3 using the shared evaluation suite: all-seed rule-agent,
 direct and temporal head-to-head play, with a separately cost-gated final-policy
 LBR stage. See [the protocol and GCP smoke/full instructions](experiments/fhp/retrospective_exp1_exp2_exp3_evaluation/README.md).
+
+## Experiment 8: rich AE matched-input confirmation
+
+Three fresh 48-active-hour VR-DeepPDCFR+ runs (seeds 0/1/2), using the exact
+UCV Experiment 38 AE features and the selected Experiment 6 learning recipe.
+UCV is reused as a historical reference. See the [experiment contract and launch
+instructions](experiments/fhp/exp8_vr_deep_rich_ae_48h/README.md).

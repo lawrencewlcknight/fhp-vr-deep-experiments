@@ -44,8 +44,14 @@ class EncodedCriticTrainer(VRPDCFRPlusQValueTrainer):
 
 
 class EncodedVRDeepPDCFRPlus(VRDeepPDCFRPlus):
-    def __init__(self, *args, **kwargs):
-        self.feature_encoder = FHPFeatureEncoder()
+    def __init__(self, *args, feature_encoder_id=None, **kwargs):
+        if feature_encoder_id is None:
+            self.feature_encoder = FHPFeatureEncoder()
+        else:
+            from fhp_vr_deep.rich_ae import ENCODER_ID, make_encoder
+            if feature_encoder_id != ENCODER_ID:
+                raise ValueError("Unsupported VR training encoder")
+            self.feature_encoder = make_encoder()
         super().__init__(*args, **kwargs)
 
     def information_state_size(self):

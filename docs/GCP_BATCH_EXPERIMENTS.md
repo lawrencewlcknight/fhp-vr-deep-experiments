@@ -866,3 +866,9 @@ temporary and disappears with the Batch VM.
 - [Batch roles and permissions](https://docs.cloud.google.com/iam/docs/roles-permissions/batch)
 - [`gcloud storage buckets add-iam-policy-binding` reference](https://docs.cloud.google.com/sdk/gcloud/reference/storage/buckets/add-iam-policy-binding)
 - [`gcloud storage cp` reference](https://docs.cloud.google.com/sdk/gcloud/reference/storage/cp)
+
+## Experiment 8: rich AE, three seeds, 48 active hours
+
+Use `gcp/run_exp8_vr_deep_rich_ae_48h.sh dry-run` to inspect the smoke/train/aggregate
+plan, then `run` with a pushed `REPO_REF`. No match league is launched. See
+[the frozen contract](../experiments/fhp/exp8_vr_deep_rich_ae_48h/README.md).

@@ -1,0 +1,35 @@
+{
+  "repository": "https://github.com/lawrencewlcknight/fhp-ucv-escher-experiments",
+  "commit": "6ab85bbcd03627281e411243419d64ce9e9236d5",
+  "reference_run_id": "exp38-rich48-20261019-230016",
+  "files": {
+    "features.py": {
+      "source_sha256": "64d3ddda6b5919f513619e3cc22e845197e794fe084a332e44af4cd8da62c421",
+      "vendored_sha256": "9dee70c457e04e13cb5d123713bdf0f9cce4e9a10e19d413583760eeb83403c1"
+    },
+    "hand_board_features.py": {
+      "source_sha256": "bdf1c20600cc7997c636c31caacdb6592d978199a3194bc91eee3c0a6b1c3f4f",
+      "vendored_sha256": "bdf1c20600cc7997c636c31caacdb6592d978199a3194bc91eee3c0a6b1c3f4f"
+    },
+    "betting_economics_features.py": {
+      "source_sha256": "87336743d8731c2e92cf52807b83173e0df53a90b585ca29b2217c6e97c73f4a",
+      "vendored_sha256": "87336743d8731c2e92cf52807b83173e0df53a90b585ca29b2217c6e97c73f4a"
+    },
+    "relative_strength.py": {
+      "source_sha256": "82ba1dbd80a11194f24c1c317ff02fdb399f625d68c37c3104c29323fc761d53",
+      "vendored_sha256": "82ba1dbd80a11194f24c1c317ff02fdb399f625d68c37c3104c29323fc761d53"
+    },
+    "strategic_features.py": {
+      "source_sha256": "4918d93aaa007b17deba0a6a947dbcc7b71208c3784e1c7f24c3623441990954",
+      "vendored_sha256": "4918d93aaa007b17deba0a6a947dbcc7b71208c3784e1c7f24c3623441990954"
+    },
+    "preflop_strength.py": {
+      "source_sha256": "f1cdcb9e6e0ee273e44e6b9a9ee2624275a67cbaad75d811943dcb3feffe2575",
+      "vendored_sha256": "f1cdcb9e6e0ee273e44e6b9a9ee2624275a67cbaad75d811943dcb3feffe2575"
+    },
+    "game.py": {
+      "source_sha256": "3c05315a7c7228819a753219306f98903e9775a5088c5b4b21751b76d9084ee1",
+      "vendored_sha256": "3c05315a7c7228819a753219306f98903e9775a5088c5b4b21751b76d9084ee1"
+    }
+  }
+}

@@ -344,6 +344,9 @@ class FHPFeatureEncoder:
 
 def encoder_from_metadata(metadata: Mapping[str, object]) -> FHPFeatureEncoder:
     """Fail closed if an artifact specifies anything except the pinned encoder."""
+    if isinstance(metadata, Mapping) and metadata.get("id") == "fhp_hand_board_strategic_ae_v1":
+        from .rich_ae import encoder_from_metadata as rich_encoder
+        return rich_encoder(dict(metadata))
     encoder = FHPFeatureEncoder()
     if not isinstance(metadata, Mapping) or dict(metadata) != encoder.metadata():
         raise ValueError("Unsupported or mismatched FHP feature encoder metadata")

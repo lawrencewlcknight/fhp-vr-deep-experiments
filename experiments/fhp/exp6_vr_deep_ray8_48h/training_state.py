@@ -52,7 +52,7 @@ def learner_state(solver):
 
 
 def save_state(directory, solver, *, training_config, seed, target_hours, elapsed_seconds,
-               is_smoke=False, parent=None):
+               is_smoke=False, parent=None, experiment=config):
     if (not getattr(solver, "safe_to_snapshot", False)
             or solver._active_checkpoint_started_at is not None):
         raise ValueError("Save a full state only after a completed iteration and checkpoint RNG restoration")
@@ -77,12 +77,12 @@ def save_state(directory, solver, *, training_config, seed, target_hours, elapse
                 arrays[key] = dict(file=filename, shape=list(value[:size].shape), dtype=value.dtype.str)
         buffers[name] = dict(capacity=buf.buffer_size, populated_rows=size, arrays=arrays,
                              counters={key: getattr(buf, key) for key in ("cur_id", "size") if hasattr(buf, key)})
-    metadata = dict(schema=SCHEMA, algorithm_id=config.ALGORITHM_ID, seed=seed, is_smoke=is_smoke,
+    metadata = dict(schema=SCHEMA, algorithm_id=experiment.ALGORITHM_ID, seed=seed, is_smoke=is_smoke,
                     training_config=training_config, training_config_sha256=canonical_sha256(training_config),
                     feature_encoder=solver.feature_encoder.metadata(), game=serialisable_game_definition(),
-                    repository_commit=repository_commit(ROOT), baseline_commit=config.BASELINE_COMMIT,
+                    repository_commit=repository_commit(ROOT), baseline_commit=experiment.BASELINE_COMMIT,
                     runtime=runtime_contract(), threads=torch.get_num_threads(), worker_count=8,
-                    traversal_rng=config.baseline.contract()["traversal_rng"],
+                    traversal_rng=experiment.contract()["traversal_rng"],
                     boundary="completed_outer_iteration_after_policy_checkpoint_rng_restoration",
                     completed_target_hours=target_hours, active_seconds=elapsed_seconds,
                     iteration=solver.num_iteration, episode=solver.episode, nodes_touched=solver.nodes_touched,
@@ -91,17 +91,17 @@ def save_state(directory, solver, *, training_config, seed, target_hours, elapse
                            for p in temporary.iterdir() if p.is_file()})
     write_json(temporary / "manifest.json", metadata)
     # Verify all serialized bytes and replay shapes before publishing the directory.
-    verify_state(temporary)
+    verify_state(temporary, experiment=experiment)
     temporary.replace(directory)
     return metadata
 
 
-def verify_state(directory):
+def verify_state(directory, *, experiment=config):
     directory = Path(directory)
     meta = read_json(directory / "manifest.json")
-    if (meta["schema"] != SCHEMA or meta["algorithm_id"] != config.ALGORITHM_ID
+    if (meta["schema"] != SCHEMA or meta["algorithm_id"] != experiment.ALGORITHM_ID
             or meta["boundary"] != "completed_outer_iteration_after_policy_checkpoint_rng_restoration"
-            or meta["worker_count"] != 8 or meta["seed"] not in config.SEEDS
+            or meta["worker_count"] != 8 or meta["seed"] not in experiment.SEEDS
             or meta["training_config_sha256"] != canonical_sha256(meta["training_config"])
             or not math.isfinite(meta["active_seconds"]) or meta["active_seconds"] <= 0
             or meta["iteration"] < 1 or meta["nodes_touched"] < meta["episode"]
