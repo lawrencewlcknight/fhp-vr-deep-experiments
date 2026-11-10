@@ -15,6 +15,7 @@ from experiments.fhp.exp10_vr_deep_policy_extraction.evaluation import planned_t
 from experiments.fhp.exp10_vr_deep_policy_extraction.analysis import aggregate, pool_moments, bootstrap
 from fhp_vr_deep.game import load_fhp_game
 from gcp.exp10_policy_extraction_batch import build_job
+from gcp.exp10_access_preflight import require_grant, check as check_access, SOURCE_BUCKETS
 
 
 class ExtractionTests(unittest.TestCase):
@@ -113,6 +114,37 @@ class ExtractionTests(unittest.TestCase):
             self.assertIn('uv python install 3.11.16',script)
             self.assertNotIn('imageUri',json.dumps(job))
         with self.assertRaises(ValueError):build_job(**(kwargs|{'run_id':'bad; echo x'}))
+
+    def test_access_check_uses_runner_not_submitter_or_another_runner(self):
+        runner='fhp-vr-deep-runner@example.iam.gserviceaccount.com'
+        binding=dict(role='roles/storage.objectAdmin',members=['serviceAccount:'+runner])
+        policy=dict(bindings=[binding])
+        self.assertEqual(require_grant(policy,'gs://bucket',runner,write=True),['roles/storage.objectAdmin'])
+        with self.assertRaisesRegex(ValueError,'Cannot verify runner'):
+            require_grant(policy,'gs://bucket','leduc-dream-runner@example.iam.gserviceaccount.com')
+        for invalid in [dict(binding,condition={'expression':'true'}),
+                        dict(binding,members=['user:submitter@example.com']),
+                        dict(binding,role='roles/storage.objectCreator')]:
+            with self.assertRaises(ValueError):require_grant(dict(bindings=[invalid]),'gs://bucket',runner,write=True)
+        viewer=dict(binding,role='roles/storage.objectViewer')
+        require_grant(dict(bindings=[viewer]),'gs://bucket',runner)
+        with self.assertRaises(ValueError):require_grant(dict(bindings=[viewer]),'gs://bucket',runner,write=True)
+
+    def test_preflight_checks_both_sources_and_output_with_correct_roles(self):
+        from experiments.fhp.exp10_vr_deep_policy_extraction.config import VR_BUCKET, UCV_BUCKET
+        self.assertEqual(set(SOURCE_BUCKETS),{VR_BUCKET,UCV_BUCKET})
+        runner='runner@example.iam.gserviceaccount.com';seen=[]
+        def cloud(bucket,project):
+            self.assertEqual(project,'test-project');seen.append(bucket)
+            role='roles/storage.objectAdmin' if bucket==VR_BUCKET else 'roles/storage.objectViewer'
+            return dict(bindings=[dict(role=role,members=['serviceAccount:'+runner])])
+        result=check_access(VR_BUCKET,runner,'test-project',cloud)
+        self.assertEqual(set(seen),set(SOURCE_BUCKETS))
+        self.assertEqual(result['status'],'passed')
+        self.assertFalse(result['effective_access_verified'])
+        def readonly(bucket,project):
+            return dict(bindings=[dict(role='roles/storage.objectViewer',members=['serviceAccount:'+runner])])
+        with self.assertRaises(ValueError):check_access(VR_BUCKET,runner,'test-project',readonly)
 
 
 if __name__=='__main__':unittest.main()

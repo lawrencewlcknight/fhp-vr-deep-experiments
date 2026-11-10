@@ -136,7 +136,7 @@ After committing and pushing this implementation:
 export PROJECT_ID=clever-overview-399515
 export REGION=europe-west1
 export BUCKET=gs://clever-overview-399515-fhp-vr-deep-results
-export SA_EMAIL=leduc-dream-runner@clever-overview-399515.iam.gserviceaccount.com
+export SA_EMAIL=fhp-vr-deep-runner@clever-overview-399515.iam.gserviceaccount.com
 export REPO_REF="$(git rev-parse HEAD)"
 export RUN_ID="vr10-extract-$(date -u '+%Y%m%d-%H%M%S')"
 bash gcp/run_exp10_policy_extraction.sh dry-run
@@ -144,7 +144,12 @@ bash gcp/run_exp10_policy_extraction.sh run
 ```
 
 The service account needs read access to both pinned source buckets and write
-access to the result bucket. The launcher does not change IAM. `profile` in
+access to the result bucket. The launcher checks the runner's direct,
+unconditional bucket grants before submission; a local user's access is not
+evidence of VM access. Run `preflight` for these read-only checks alone.
+The check conservatively rejects inherited/custom/conditional permissions that
+it cannot resolve and does not evaluate organisation-level denies. It does not
+change IAM. `profile` in
 place of `run` performs refits and the short on-VM scoring profile, then stops;
 use `resume` with the same variables to finish. `resume` also recovers an
 interrupted full job without selecting a new configuration. Keep the same

@@ -10,10 +10,11 @@ REPO_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 : "${RUN_ID:?Set a fresh VR Experiment 10 RUN_ID}"
 : "${REPO_REF:?Set REPO_REF to the full pushed commit containing Experiment 10}"
 BUCKET="gs://${BUCKET#gs://}"; BUCKET="${BUCKET%/}"
-case "$ACTION" in dry-run|run|profile|resume) ;; *) echo 'Use dry-run, run, profile, or resume' >&2; exit 2 ;; esac
+case "$ACTION" in dry-run|preflight|run|profile|resume) ;; *) echo 'Use dry-run, preflight, run, profile, or resume' >&2; exit 2 ;; esac
 if [[ ! "$REPO_REF" =~ ^[0-9a-f]{40}$ ]]; then echo 'Full commit SHA required' >&2; exit 2; fi
 TEMP_DIR="$(mktemp -d /tmp/vr10-launch.XXXXXX)"
 git -C "$REPO_DIR" show "$REPO_REF:gcp/exp10_policy_extraction_batch.py" > "$TEMP_DIR/builder.py"
+git -C "$REPO_DIR" show "$REPO_REF:gcp/exp10_access_preflight.py" > "$TEMP_DIR/preflight.py"
 git -C "$REPO_DIR" cat-file -e "$REPO_REF:experiments/fhp/exp10_vr_deep_policy_extraction/run.py"
 EXTRA=(); JOB_NAME="$RUN_ID"
 if [[ "$ACTION" == profile ]]; then EXTRA+=(--profile-only); fi
@@ -21,6 +22,9 @@ if [[ "$ACTION" == resume ]]; then EXTRA+=(--resume); JOB_NAME="${RUN_ID}-r$(dat
 python3 "$TEMP_DIR/builder.py" --run-id "$RUN_ID" --bucket "$BUCKET" \
   --service-account "$SA_EMAIL" --repo-ref "$REPO_REF" --output "$TEMP_DIR/job.json" ${EXTRA[@]+"${EXTRA[@]}"}
 if [[ "$ACTION" == dry-run ]]; then echo "Prepared $TEMP_DIR/job.json; no job submitted."; exit 0; fi
+python3 "$TEMP_DIR/preflight.py" --project "$PROJECT_ID" --bucket "$BUCKET" \
+  --service-account "$SA_EMAIL" --receipt "$TEMP_DIR/access_preflight.json"
+if [[ "$ACTION" == preflight ]]; then echo 'Read-only checks passed; no job submitted.'; exit 0; fi
 if (( ${#JOB_NAME} > 63 )); then echo 'Job name exceeds 63 characters; use a shorter RUN_ID' >&2; exit 2; fi
 ACTIVE_STATES="$(gcloud batch jobs list --project "$PROJECT_ID" --location "$REGION" \
   --filter="labels.experiment=vr10-policy-extraction AND labels.run=$RUN_ID" --format='value(status.state)')"
