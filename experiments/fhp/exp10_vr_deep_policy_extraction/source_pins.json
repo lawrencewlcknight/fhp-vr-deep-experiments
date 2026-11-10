@@ -1,0 +1,83 @@
+{
+  "vr_run": "vr8-rich48-20261101-234215",
+  "ucv_run": "exp38-rich48-20261019-230016",
+  "vr": {
+    "0": {
+      "worker": "task_000_rich_ae_vr_deep_pdcfr_plus_48h_seed_0",
+      "files": {
+        "SUCCESS.json": "4b31c41ad26def8d4948c403eb2d65b587cc38d8cc1812fae103e97de801c93b",
+        "run_manifest.json": "0c0491d5d3e50a4f3548542245a0a8422bf659a4159c7cc086f30a368cbdbe7a",
+        "checkpoint_manifest.json": "a6c19757b369cf902714304ddae54fff9c591257ba3dd715bdd3a8dbff602e15",
+        "training_state/manifest.json": "9ea6a86b02db6f4cb7cc38b6ef36e4aa4442a81348f04e24faef0e9ef55f00c3",
+        "training_state/policy__infostate_buf.npy": "eabf3b59ad7dbfa8f0e7d2d594abfa789bf003e1449d2195f61bf49150ead293",
+        "training_state/policy__q_value_buf.npy": "2b23222daf5e4c41558b294b53ed8ce8502d6a6836c8c666a86b00d75ed59bb6",
+        "training_state/policy__q_value_mask_buf.npy": "680a2b1c6bc356a697ea3d615c6fadcaf444a88dc7bc932d5c9a77fb97892a2f",
+        "training_state/policy__iteration_buf.npy": "d2b5b5dd5951c4c5f2511039e2218cc681e6bad43ff402bab358102a0ce3753b",
+        "checkpoints/rich_ae_vr_deep_pdcfr_plus_48h_seed_0_time_48h.pt": "88a369812b363ca26a3183cee821d7c68a1c5898daec066e1d54e99750c046f1"
+      },
+      "policy": "checkpoints/rich_ae_vr_deep_pdcfr_plus_48h_seed_0_time_48h.pt",
+      "iteration": 1310,
+      "policy_bytes": 952000512
+    },
+    "1": {
+      "worker": "task_001_rich_ae_vr_deep_pdcfr_plus_48h_seed_1",
+      "files": {
+        "SUCCESS.json": "25bdf30118b719b64a10a0cde93b2a2b1a86a26cce2b974c4b4aa9f6ddb60b68",
+        "run_manifest.json": "aa1b4cd2d1ce0660d5af8f331ca9607003b74e89e7dd04b6d32b0cf0d90b3f40",
+        "checkpoint_manifest.json": "5da4785b09c4ac6ee201489740db988c738bb8336605c7a99e03e7687eb55d6d",
+        "training_state/manifest.json": "e53a9e4f6dcad401d7aa5e0cd30ba968eb1a7fd085d97b99812c3226900bab02",
+        "training_state/policy__infostate_buf.npy": "fb59300f769cb89efe228095e788167f5725b8332f896a0c11e3e3972db11ec3",
+        "training_state/policy__q_value_buf.npy": "e240350e86e25558c7657876586426c3cfa4aa7eb5f0df82d61833da044c76c7",
+        "training_state/policy__q_value_mask_buf.npy": "25c3673156d9e6180f560b421472fa26b76c5b58a13148dc1c3756de5a443c12",
+        "training_state/policy__iteration_buf.npy": "ee92edf0f5329caadc1e76135a7425e27b4d1d6319e627f99917acfa30cfa13c",
+        "checkpoints/rich_ae_vr_deep_pdcfr_plus_48h_seed_1_time_48h.pt": "afe651deae73c90b239a13ef32d32bfe53a41e10916caf0499ccac6b342701df"
+      },
+      "policy": "checkpoints/rich_ae_vr_deep_pdcfr_plus_48h_seed_1_time_48h.pt",
+      "iteration": 1323,
+      "policy_bytes": 952000512
+    },
+    "2": {
+      "worker": "task_002_rich_ae_vr_deep_pdcfr_plus_48h_seed_2",
+      "files": {
+        "SUCCESS.json": "807d323982ef08bf63fa8fb59358f93e084880bd6add4baa5cbdda12b17340e4",
+        "run_manifest.json": "fde823faa132e90d3ef2f5170134c1921ead132648680985019805be21ebf946",
+        "checkpoint_manifest.json": "30fbbcc8cd325f5fb057873af5c65595085a048200899a51bab7a2c985029c9f",
+        "training_state/manifest.json": "6dbe34026487a88c66a7fdecc797ffd14fd335cf55f2dbc5996eb46405ab1dbd",
+        "training_state/policy__infostate_buf.npy": "caecd9e710643e33081536c769f642d96fea4823793a1fc28af9381e39a2a7ec",
+        "training_state/policy__q_value_buf.npy": "13345c5b7e185114bb6671cdcd32bed9684e30a89304d6b4a27457aa654893d6",
+        "training_state/policy__q_value_mask_buf.npy": "35cddf63fb4e36b1a5b277492e7c7a9d0c8c5332cffb843bfa89635f90554b95",
+        "training_state/policy__iteration_buf.npy": "a81dc7c53e2b5341ff2a1889a7f4faad90590fc30d2ede2680379ebbb1be0549",
+        "checkpoints/rich_ae_vr_deep_pdcfr_plus_48h_seed_2_time_48h.pt": "43864abe643a1022f6a0e758f230d9a082eb7f6d056c933fdbb09b2e8bd32793"
+      },
+      "policy": "checkpoints/rich_ae_vr_deep_pdcfr_plus_48h_seed_2_time_48h.pt",
+      "iteration": 1456,
+      "policy_bytes": 952000512
+    }
+  },
+  "ucv": {
+    "0": {
+      "worker": "task_000_strategic_ae_critic2500_ucv_escher_seed_0",
+      "policy": "checkpoints/strategic_ae_critic2500_ucv_escher_seed_0_time_48h.pkl",
+      "files": {
+        "checkpoints/strategic_ae_critic2500_ucv_escher_seed_0_time_48h.pkl": "d9c0ac74948c016e67a12faa79f943f17d0a65b8814411dab4668d3a25439870"
+      },
+      "iteration": 2071
+    },
+    "1": {
+      "worker": "task_001_strategic_ae_critic2500_ucv_escher_seed_1",
+      "policy": "checkpoints/strategic_ae_critic2500_ucv_escher_seed_1_time_48h.pkl",
+      "files": {
+        "checkpoints/strategic_ae_critic2500_ucv_escher_seed_1_time_48h.pkl": "04473fb555e7067e93eb696aea890ada210c98d793a0d5bd393b0ac28c50405c"
+      },
+      "iteration": 1892
+    },
+    "2": {
+      "worker": "task_002_strategic_ae_critic2500_ucv_escher_seed_2",
+      "policy": "checkpoints/strategic_ae_critic2500_ucv_escher_seed_2_time_48h.pkl",
+      "files": {
+        "checkpoints/strategic_ae_critic2500_ucv_escher_seed_2_time_48h.pkl": "148f3574c715383633733d3e7ae5b2a3ac5136f309081121a350b7669518b2c6"
+      },
+      "iteration": 2006
+    }
+  }
+}
